@@ -84,7 +84,6 @@ var profile = {
                 'xide/GUIALL',
                 'xide/Views',
                 'xide/main',
-                'xfile/boot',
                 'xide/run'],
 
             // By default, the build system will try to include dojo/main in the built dojo/dojo layer, which adds a
