@@ -1,5 +1,4 @@
 define([
-    "dcl/dcl",
     "dojo/_base/declare",
     "dojo/_base/lang",
     'xide/types',
@@ -9,7 +8,7 @@ define([
     "dojo/node!winston-filerotatedate",
     "dojo/node!winston-loggly"
 ],
-    function (dcl,declare,lang,types,utils,factory,winston)
+    function (declare,lang,types,utils,factory,winston)
     {
         return declare("xlog.Server", null,
         {
@@ -52,7 +51,6 @@ define([
                 }
 
                 if(options.loggly){
-                    /*console.log('add file logger ',options.loggly);*/
                     this.loggly= winston.add(winston.transports.Loggly, options.loggly);
                 }
                 if(options.console===null){
