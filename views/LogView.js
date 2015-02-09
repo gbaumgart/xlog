@@ -312,6 +312,9 @@ define([
                 },
                 onLevelChanged: function (store) {
 
+                    if(!this.isVisible()){
+                        return;
+                    }
                     var logItems = this.store.fetchSync();
 
                     for (var i = 0; i < logItems.length; i++) {
