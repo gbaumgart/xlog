@@ -397,12 +397,12 @@ define([
                     var self = this;
                     var actions = [];
 
-                    actions.push (Action.create('Clear', 'el-icon-remove-sign', 'View/Clear', true, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
+                    actions.push (Action.create('Clear', 'el-icon-remove-sign', 'View/Clear', false, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
                         function () {
                             thiz.clear(self);
                         },null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR,{label:''}));
 
-                    actions.push (Action.create('Clear', 'el-icon-refresh', 'View/Reload', true, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
+                    actions.push (Action.create('Clear', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
                         function () {
                             thiz.reload(self);
                         },null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR,{label:''}));
