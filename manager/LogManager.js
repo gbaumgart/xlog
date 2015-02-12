@@ -8,12 +8,11 @@ define([
         'xide/utils',
         "dojo/cookie",
         "dojo/json",
-        "dstore/Memory",
-        "dojo/store/Observable",
+        "xide/data/Memory",
         'xlog/views/LogView',
         'xide/mixins/ReloadMixin'
     ],
-    function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json, Memory, Observable, LogView, ReloadMixin) {
+    function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json, Memory, LogView, ReloadMixin) {
         return declare("xide.manager.LogManager", [ServerActionBase, BeanManager, ReloadMixin],
             {
                 serviceClass: 'XIDE_Log_Service',
@@ -109,7 +108,7 @@ define([
                 /***
                  * Init our store
                  * @param data
-                 * @returns {dojo.data.ItemFileWriteStore|*}
+                 * @returns {dstore/Memory}
                  */
                 initStore: function (data) {
 
@@ -122,12 +121,19 @@ define([
                     if(data.length==0){
                         data = [];
                     }
+
                     for (var i = 0; i < data.length; i++) {
                         var item = data[i];
                         sdata.items.push(this._buildLoggingMessage(item));
                     }
-
-                    this.store = Memory({data: sdata});
+                    try {
+                        this.store = new Memory({
+                            idProperty:'id',
+                            data: sdata
+                        });
+                    }catch(e){
+                        console.error('log creation failed: ',e);
+                    }
 
                     return this.store;
                 },
@@ -168,6 +174,7 @@ define([
                     }
                 },
                 openLogView: function (target,silent) {
+
                     if (!this.isValid()) {
                         this.initStore([]);
                     }
@@ -232,9 +239,11 @@ define([
                 init: function () {
 
                     this.inherited(arguments);
+
                     this.subscribe(types.EVENTS.ON_MAIN_MENU_OPEN, this.onMainMenuOpen);
                     this.subscribe(types.EVENTS.ON_MAIN_VIEW_READY, this.onMainViewReady);
                     this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE, this.onServerLogMessage);
+
                     this.views = [];
                 },
                 /////////////////////////////////////////////////////////////////////////////////////
