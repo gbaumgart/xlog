@@ -36,7 +36,6 @@ define([
                     var momentUnix = moment.unix(data);
                     return momentUnix.format("MMMM Do, h:mm:ss a");
                 },
-
                 _createPendingEvent: function (message, item, terminatorMessage, id) {
 
                     var _handle = null;
