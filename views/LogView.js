@@ -17,7 +17,7 @@ define([
         'xlog/widgets/RowDetailEditor',
         'xide/bean/Action'
     ],
-    function (declare, lang, domClass, BeanView, OnDemandGrid, Selection, Keyboard, editor, GridView, ColumnHider, ColumnResizer, ColumnReorder, types, utils, FlagsWidget, RowDetailEditor,Action) {
+    function (declare, lang, domClass, BeanView, OnDemandGrid, Selection, Keyboard, Editor, GridView, ColumnHider, ColumnResizer, ColumnReorder, types, utils, FlagsWidget, RowDetailEditor,Action) {
 
         var logview = declare('xlog/views/LogView', [BeanView, GridView],{
                 delegate: null,
@@ -81,6 +81,12 @@ define([
                                 this.item.level = 'error';
                                 this.item.message = item.oriMessage + ' : Failed';
                                 this.item._isTerminated = true;
+
+                                //gee, can't we do better ?
+                                if(data && data.item && data.item.error && this.item.details){
+                                    this.item.details['error'] = data.item.error;
+                                }
+
 
                                 if (_handle) {
                                     _handle.remove();
@@ -221,12 +227,12 @@ define([
                                 return thiz.formatDateSimple(time / 1000);
                             }
                         },
-                        Details: editor({
+                        Details:{
                             field: "details", // get whole item for use by formatter
                             label: "Details",
-                            sortable: false
-                        }, RowDetailEditor)
-
+                            sortable: false,
+                            editor:RowDetailEditor
+                        }
                     };
 
                     if (!this.showSource) {
@@ -239,7 +245,7 @@ define([
                 },
                 createWidgets: function (store) {
 
-                    var grid = new (declare([OnDemandGrid, Selection, Keyboard, ColumnHider, ColumnResizer, ColumnReorder]))({
+                    var grid = new (declare([OnDemandGrid,Editor,Selection, Keyboard, ColumnHider, ColumnResizer, ColumnReorder]))({
                         collection: store,
                         columns: this.getColumns(),
                         cellNavigation: false,
@@ -326,6 +332,7 @@ define([
 
                     this.onLevelChanged();
                 },
+                _didSetStore:false,
                 onLevelChanged: function (store) {
 
 
@@ -345,7 +352,14 @@ define([
                         return;
                     }
 
+
+                    if(store && (!this._didSetStore || this.store!=store)){
+                        this._didSetStore = true;
+                        this.grid.set('collection',store);
+                    }
+
                     this.grid.refresh();
+
 
 
                     /*
