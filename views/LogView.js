@@ -309,11 +309,27 @@ define([
                 update: function (store) {
                     this.onLevelChanged(store);
                 },
+                onShow:function(){
+                    this.inherited(arguments);
+
+                    this.resize();
+
+                    if (this.onResize) {
+                        this.onResize();
+                    }
+                    if(this.silent!==false) {
+                        this.publish(types.EVENTS.ON_VIEW_SHOW, {
+                            view: this
+                        });
+                        this.silent=false;
+                    }
+
+                    this.onLevelChanged();
+                },
                 onLevelChanged: function (store) {
 
-                    if(!this.isVisible()){
-                        return;
-                    }
+
+
                     var logItems = this.store.fetchSync();
 
                     for (var i = 0; i < logItems.length; i++) {
@@ -323,6 +339,10 @@ define([
 
                     if (store) {
                         this.store = store;
+                    }
+
+                    if(!this.isVisible()){
+                        return;
                     }
 
                     this.grid.refresh();
