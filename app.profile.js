@@ -67,13 +67,7 @@ var profile = {
             include: [
                 'dojo/dojo',
                 'dojo/i18n',
-                'dojox/fx',
-                'dojox/fx/flip',
-                'dojox/fx/easing',
-                'dojox/mobile',
                 'dojo/domReady',
-                'dojox/fx',
-                'dojox/fx/scroll',
                 'xide/Imports/DojoRPCImports',
                 'xide/Imports/DojoDomUtilImports',
                 'xide/Imports/DijitImports', //  Extra - DIJIT - IMPORTS
