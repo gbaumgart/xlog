@@ -355,7 +355,8 @@ define([
 
                     if(store && (!this._didSetStore || this.store!=store)){
                         this._didSetStore = true;
-                        this.grid.set('collection',store);
+                        //this.grid.set('collection',store);
+                        this.grid.set('collection',store.sort(this.getDefaultSort()));
                     }
 
                     this.grid.refresh();
