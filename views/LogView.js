@@ -15,9 +15,86 @@ define([
         'xide/utils',
         'xide/widgets/FlagsWidget',
         'xlog/widgets/RowDetailEditor',
-        'xide/bean/Action'
+        'xide/bean/Action',
+        'xide/mixins/EventedMixin'
     ],
-    function (declare, lang, domClass, BeanView, OnDemandGrid, Selection, Keyboard, Editor, GridView, ColumnHider, ColumnResizer, ColumnReorder, types, utils, FlagsWidget, RowDetailEditor,Action) {
+    function (declare, lang, domClass, BeanView, OnDemandGrid, Selection, Keyboard, Editor, GridView, ColumnHider, ColumnResizer, ColumnReorder, types, utils, FlagsWidget, RowDetailEditor,Action,EventedMixin) {
+
+
+        var  ProgressHandler = declare(null,[EventedMixin],{
+            bytesLoaded:null,
+            percentValue:null,
+            item:null,
+            constructor:function(item){
+                this.item = item;
+            },
+            _onProgressFailed : function (data) {
+
+                this.item.level = 'error';
+                this.item.message = item.oriMessage + ' : Failed';
+                this.item._isTerminated = true;
+
+                //gee, can't we do better ?
+                if(data && data.item && data.item.error && this.item.details){
+                    this.item.details['error'] = data.item.error;
+                }
+
+
+                if (_handle) {
+                    _handle.remove();
+                    _handle = null;
+                }
+
+                if (_progressHandle != null) {
+                    _progressHandle.remove();
+                    _progressHandle = null;
+                }
+
+                //thiz.grid.refresh();
+
+                _progressFailedHandle.remove();
+                _progressFailedHandle = null;
+
+
+            },
+            _onProgress : function (data) {
+
+                try {
+
+                    var computableEvent = data.progress;
+                    var percentage = null;
+                    if (percentage == null) {
+                        percentage = Math.round((computableEvent.loaded * 100) / computableEvent.total);
+                        this.bytesLoaded = computableEvent.loaded;
+                    }
+
+                    if (this.percentValue != percentage) {
+                        var _newMessage = '' + this.item.oriMessage;
+                        _newMessage += ' : ' + percentage + '%';
+                        this.item.message = '' + _newMessage;
+                        //thiz.grid.refresh();
+                    }
+                    this.percentValue = percentage;
+
+                    if (this.percentValue >= 100) {
+                        this.item.message = this.item.oriMessage + ' : Done';
+                        _progressHandle.remove();
+                        _progressHandle = null;
+                        if (_handle) {
+                            _handle.remove();
+                            _handle = null;
+                        }
+                        this.item._isTerminated = true;
+                        //thiz.grid.refresh();
+                    }
+
+                } catch (e) {
+                    console.error('crash in log progress ' + e);
+                }
+            }
+        });
+
+
 
         var logview = declare('xlog/views/LogView', [BeanView, GridView],{
                 delegate: null,
@@ -38,11 +115,12 @@ define([
                 },
                 _createPendingEvent: function (message, item, terminatorMessage, id) {
 
-                    var _handle = null;
-                    var _progressHandle = null;
-                    var _progressFailedHandle = null;
-                    var thiz = this;
-                    var _id = id;
+                    var _handle = null,
+                        _progressHandle = null,
+                        _progressFailedHandle = null,
+                        thiz = this,
+                        _id = id;
+
                     item._isInProgress = true;
 
                     var _onEnd = function (evt) {
@@ -62,10 +140,8 @@ define([
                                 _progressHandle.remove();
                             }
                         }
-
                     };
-
-                    _handle = dojo.subscribe(terminatorMessage, lang.hitch(thiz, _onEnd));
+                    _handle = thiz.subscribe(terminatorMessage,_onEnd,thiz)[0];
 
                     if (item.showProgress && item.progressMessage) {
 
@@ -148,9 +224,7 @@ define([
                         var progressObject = new ProgressHandler();
                         progressObject.item = item;
                         _progressHandle = dojo.subscribe(item.progressMessage, lang.hitch(progressObject, progressObject._onProgress));
-
                         if (item.progressFailedMessage) {
-
                             _progressFailedHandle = dojo.subscribe(item.progressFailedMessage, lang.hitch(progressObject, progressObject._onProgressFailed));
                         }
                     }
@@ -348,21 +422,17 @@ define([
                         this.store = store;
                     }
 
-                    if(!this.isVisible()){
-                        return;
-                    }
-
-
                     if(store && (!this._didSetStore || this.store!=store)){
                         this._didSetStore = true;
                         //this.grid.set('collection',store);
                         this.grid.set('collection',store.sort(this.getDefaultSort()));
                     }
 
+                    if(!this.isVisible()){
+                        return;
+                    }
+
                     this.grid.refresh();
-
-
-
                     /*
                     this.grid.set("collection", this.store, {
                         show: true
