@@ -106,6 +106,7 @@ define([
                 sourceField: 'host',
                 showSource: true,
                 _eventKeys: {},
+                getRootFilter:function(){},
                 reload: function (store) {
                     this.refresh(store);
                 },
