@@ -106,6 +106,9 @@ define([
                 sourceField: 'host',
                 showSource: true,
                 _eventKeys: {},
+                onReloaded:function(){
+                  console.log('asdf');
+                },
                 getRootFilter:function(){},
                 reload: function (store) {
                     this.refresh(store);
@@ -124,7 +127,7 @@ define([
 
                     item._isInProgress = true;
 
-                    var _onEnd = function (evt) {
+                    function _onEnd (evt) {
 
                         if (!item._isTerminated && _handle) {
                             item.message = item.oriMessage + ' : Done';
@@ -141,8 +144,10 @@ define([
                                 _progressHandle.remove();
                             }
                         }
-                    };
+                    }
+
                     _handle = thiz.subscribe(terminatorMessage,_onEnd,thiz)[0];
+
 
                     if (item.showProgress && item.progressMessage) {
 
@@ -286,12 +291,6 @@ define([
                             sortable: true,
                             formatter: function (message, item) {
                                 return thiz.getMessageFormatter(message, item)
-                            },
-                            formatter2: function (status) {
-                                var tpl = '<div style=\"color:${color}\">' + utils.capitalize(status) + '</div>';
-                                return utils.substituteString(tpl, {
-                                    color: status == 'offline' ? 'red' : 'green'
-                                });
                             }
                         },
                         Time: {
@@ -320,7 +319,13 @@ define([
                 },
                 createWidgets: function (store) {
 
-                    var grid = new (declare([OnDemandGrid,Editor,Selection, Keyboard, ColumnHider, ColumnResizer, ColumnReorder]))({
+                    /*console.profile('t');*/
+                    //Selection, Keyboard, ColumnHider, ColumnResizer, ColumnReorder
+
+                    var gridProto = declare('_loggrid',[OnDemandGrid,Editor,Selection, Keyboard, ColumnHider, ColumnResizer, ColumnReorder],{}),
+                        thiz = this;
+
+                    var grid = new gridProto({
                         collection: store,
                         columns: this.getColumns(),
                         cellNavigation: false,
@@ -329,14 +334,16 @@ define([
                     }, this.containerNode);
 
                     this.grid = grid;
-
+                    /*console.profileEnd('t');*/
                     this.onGridCreated(grid);
-
                     var hider = utils.find('.dgrid-hider-menu', this.domNode, false);
-
                     domClass.add(hider[0], 'ui-widget-content');
 
                     grid.set('collection',store.sort(this.getDefaultSort()));
+
+                    grid.refresh().then(function(){
+                        thiz.resize();
+                    });
 
                 },
                 onItemClick: function (item) {
@@ -404,7 +411,6 @@ define([
                         });
                         this.silent=false;
                     }
-
                     this.onLevelChanged();
                 },
                 _didSetStore:false,
@@ -428,17 +434,10 @@ define([
                         //this.grid.set('collection',store);
                         this.grid.set('collection',store.sort(this.getDefaultSort()));
                     }
-
                     if(!this.isVisible()){
                         return;
                     }
-
                     this.grid.refresh();
-                    /*
-                    this.grid.set("collection", this.store, {
-                        show: true
-                    });
-                    */
                 },
                 /**
                  * @returns {xide.widgets.FlagsWidget}
@@ -507,7 +506,7 @@ define([
                             thiz.clear(self);
                         },null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR,{label:''}));
 
-                    actions.push (Action.create('Clear', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
+                    actions.push (Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
                         function () {
                             thiz.reload(self);
                         },null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR,{label:''}));
