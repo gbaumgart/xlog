@@ -148,7 +148,7 @@ define([
                  * @param store
                  * @param where
                  */
-                createLoggingView: function (store, where,silent) {
+                createLoggingView: function (store, where, silent) {
 
                     var parent = where || this.getViewTarget();
 
@@ -172,6 +172,9 @@ define([
                         var view = this.views[i];
                         view.update(store);
                     }
+                },
+                addLogView:function(view){
+                    this.views.push(view);
                 },
                 openLogView: function (target,silent) {
 
@@ -240,10 +243,11 @@ define([
 
                     this.inherited(arguments);
 
-                    this.subscribe(types.EVENTS.ON_MAIN_MENU_OPEN, this.onMainMenuOpen);
-                    this.subscribe(types.EVENTS.ON_MAIN_VIEW_READY, this.onMainViewReady);
-                    this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE, this.onServerLogMessage);
-
+                    this.subscribe([
+                        types.EVENTS.ON_MAIN_MENU_OPEN,
+                        types.EVENTS.ON_MAIN_VIEW_READY,
+                        types.EVENTS.ON_SERVER_LOG_MESSAGE
+                    ]);
                     this.views = [];
                 },
                 /////////////////////////////////////////////////////////////////////////////////////

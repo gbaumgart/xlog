@@ -94,8 +94,6 @@ define([
             }
         });
 
-
-
         var logview = declare('xlog/views/LogView', [BeanView, GridView],{
                 delegate: null,
                 store: null,
@@ -414,25 +412,38 @@ define([
                     this.onLevelChanged();
                 },
                 _didSetStore:false,
-                onLevelChanged: function (store) {
-
-
-
-                    var logItems = this.store.fetchSync();
-
-                    for (var i = 0; i < logItems.length; i++) {
-                        var item = logItems[i];
-                        item.show = this.isLevelEnabled(item.level)
-                    }
+                onLevelChanged: function (store,level,enabled) {
 
                     if (store) {
                         this.store = store;
                     }
 
+                    if(level!==null) {
+
+                        var logItems = this.store.fetchSync();
+                        for (var i = 0; i < logItems.length; i++) {
+                            var item = logItems[i];
+                            //var show = this.isLevelEnabled(item.level);
+                            if(level!==null) {
+                                if (item.level ===level) {
+                                    item.show = enabled;
+                                }
+                            }
+                        }
+
+                        this.grid.set('collection', this.store.filter({
+                            show: true
+                        }));
+
+                    }
+
                     if(store && (!this._didSetStore || this.store!=store)){
                         this._didSetStore = true;
                         //this.grid.set('collection',store);
-                        this.grid.set('collection',store.sort(this.getDefaultSort()));
+                        this.grid.set('collection',store.filter({
+                            show:true
+                        }));
+                        //this.grid.set('collection',store.sort(this.getDefaultSort()));
                     }
                     if(!this.isVisible()){
                         return;
@@ -466,9 +477,9 @@ define([
                         title: '',
                         single: false,
                         flagClass: 'flagItem',
-                        style: 'display:inline-block;width:auto;',
-                        _onFlagChange: function () {
-                            return thiz.onLevelChanged();
+                        style: 'display:inline-block;width:auto;height:15px;',
+                        _onFlagChange: function (checkbox) {
+                            return thiz.onLevelChanged(null,checkbox.value,checkbox.checked);
                         },
                         isChecked: function (val, itemVal) {
                             return true;
@@ -479,7 +490,7 @@ define([
                         getValue: function () {
                             return 8;
                         }
-                    }, thiz, dojo.doc.createElement('div'), true, 'ui-widget-content');
+                    }, thiz, dojo.doc.createElement('div'), true, '');
                     flagsWidget.startup();
                     this.flagWidget = flagsWidget;
                     return flagsWidget;
@@ -499,22 +510,30 @@ define([
 
                     var thiz = this.delegate;
                     var self = this;
-                    var actions = [];
+                    var actions = [],
+                        VISIBILITY = types.ACTION_VISIBILITY;
 
-                    actions.push (Action.create('Clear', 'el-icon-remove-sign', 'View/Clear', false, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
+                    actions.push(Action.create('Clear', 'el-icon-remove-sign', 'View/Clear', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
                         function () {
                             thiz.clear(self);
-                        },null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR,{label:''}));
+                        }, null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR, {label: ''}));
 
-                    actions.push (Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null,true,
+                    actions.push(Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
                         function () {
                             thiz.reload(self);
-                        },null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR,{label:''}));
+                        }, null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR, {label: ''}));
 
-                    return actions;
+                    actions.push(Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
+                        function () {
+                            thiz.reload(self);
+                        }, null).
+                        setVisibility(VISIBILITY.MAIN_MENU, {show: false}).
+                        setVisibility(VISIBILITY.CONTEXT_MENU, null).
+                        setVisibility(VISIBILITY.ACTION_TOOLBAR, {
+                            label: '',
+                            _widget: this.createLevelWidget()
+                        }));
 
-                    var flagsWidget = this.createLevelWidget();
-                    actions.push(flagsWidget);
                     return actions;
                 }
 
