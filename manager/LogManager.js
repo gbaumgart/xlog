@@ -15,6 +15,7 @@ define([
     function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json, Memory, LogView, ReloadMixin) {
         return declare("xide.manager.LogManager", [ServerActionBase, BeanManager, ReloadMixin],
             {
+
                 serviceClass: 'XIDE_Log_Service',
                 cookiePrefix: 'logging',
                 singleton: true,

@@ -27,6 +27,7 @@ define([
             item:null,
             constructor:function(item){
                 this.item = item;
+
             },
             _onProgressFailed : function (data) {
 

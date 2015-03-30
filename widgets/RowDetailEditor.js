@@ -19,6 +19,7 @@ define([
                 data:null,
                 getRootId: function () {
                     return this.id;
+
                 },
                 getTooltipNode: function () {
                     return this.containerNode;

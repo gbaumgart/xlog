@@ -24,6 +24,7 @@ define([
                 "</div>" +
                 "</div>",
                 _patchMenu: function (widget) {
+
                     var thiz = this;
                     aspect.after(widget, 'onOpen', function () {
                         if (this._popupWrapper && this._popupWrapper) {
