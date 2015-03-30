@@ -1,13 +1,14 @@
 define([
         "dojo/_base/declare",
         "dojo/_base/lang",
+        "dojo/dom-construct",
         'dijit/_Widget',
         'xide/widgets/TemplatedWidgetBase',
         'xide/widgets/ToolTipMixin',
         'xide/mixins/EventedMixin',
         'xide/mixins/ReloadMixin'
     ],
-    function (declare, lang, _Widget, TemplatedWidgetBase, ToolTipMixin, EventedMixin, ReloadMixin) {
+    function (declare, lang,domConstruct,_Widget, TemplatedWidgetBase, ToolTipMixin, EventedMixin, ReloadMixin) {
         return declare("xlog.widgets.RowDetailEditor", [_Widget, TemplatedWidgetBase, EventedMixin, ReloadMixin, ToolTipMixin],
             {
                 _didRenderBlock: false,
@@ -15,6 +16,7 @@ define([
                 debug: true,
                 highlightDelay: 1200,
                 _isHighLighting: false,
+                data:null,
                 getRootId: function () {
                     return this.id;
                 },
@@ -34,7 +36,6 @@ define([
                     };
                     this.editor = new JSONEditor(pdiv, options);
                     this.editor.set(data);
-                    this.editor.collapseAll();
                 },
                 renderObject: function (block) {
                     if (!this.containerNode) {
@@ -64,6 +65,9 @@ define([
                 },
                 startup: function () {
                     this.inherited(arguments);
+
+                    var thiz = this;
+
 
                     try {
                         if (!this._didRenderBlock) {
@@ -116,7 +120,26 @@ define([
                                     if (lang.isArray(details) && details.length === 0) {
                                         return '';
                                     }
-                                    this.renderObject(details);
+
+                                    this.data = details;
+                                    var _handle = null,
+                                        container = this.containerNode;
+
+                                    dojo.empty(container);
+
+                                    var opener  = domConstruct.create('span',{
+                                        className:"fa fa-expand ui-button"
+                                    });
+                                    container.appendChild(opener);
+
+                                    var _collapse = function() {
+                                        setTimeout(function () {
+                                            thiz.renderObject(details);
+                                            _handle.remove();
+                                        }, 100);
+                                    };
+                                    _handle = this.on('click',_collapse);
+
                                 } else if (lang.isString) {
                                     this.renderString(this.object.details);
                                 }

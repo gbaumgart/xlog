@@ -166,11 +166,11 @@ define([
                     }
 
                 },
-                updateViews: function (store) {
+                updateViews: function (store,message) {
 
                     for (var i = 0; i < this.views.length; i++) {
                         var view = this.views[i];
-                        view.update(store);
+                        view.update(store,message);
                     }
                 },
                 addLogView:function(view){
@@ -225,7 +225,7 @@ define([
                     }catch(e){
                         console.error('adding log message to store failed ' + e);
                     }
-                    this.updateViews(this.getStore());
+                    this.updateViews(this.getStore(),msg);
                 },
                 onServerLogMessage: function (evt) {
                     this.addLoggingMessage(evt);

@@ -104,8 +104,8 @@ define([
                 sourceField: 'host',
                 showSource: true,
                 _eventKeys: {},
-                onReloaded:function(){
-                  console.log('asdf');
+                getFilters:function(){
+                    return {};
                 },
                 getRootFilter:function(){},
                 reload: function (store) {
@@ -320,15 +320,18 @@ define([
                     /*console.profile('t');*/
                     //Selection, Keyboard, ColumnHider, ColumnResizer, ColumnReorder
 
-                    var gridProto = declare('_loggrid',[OnDemandGrid,Editor,Selection, Keyboard, ColumnHider, ColumnResizer, ColumnReorder],{}),
+                    var gridProto = declare('_loggrid',[OnDemandGrid,Editor,Keyboard,Selection,ColumnHider, ColumnResizer, ColumnReorder],{}),
                         thiz = this;
 
                     var grid = new gridProto({
-                        collection: store,
+                        minRowsPerPage:10,
+                        maxRowsPerPage:20,
+                        collection: store.sort(this.getDefaultSort()),
                         columns: this.getColumns(),
                         cellNavigation: false,
-                        deselectOnRefresh: false,
-                        rowsPerPage: 20
+                        deselectOnRefresh: true,
+                        rowsPerPage: 10,
+                        farOffRemoval:600
                     }, this.containerNode);
 
                     this.grid = grid;
@@ -336,14 +339,14 @@ define([
                     this.onGridCreated(grid);
                     var hider = utils.find('.dgrid-hider-menu', this.domNode, false);
                     domClass.add(hider[0], 'ui-widget-content');
-
-                    grid.set('collection',store.sort(this.getDefaultSort()));
-
+                    //grid.set('collection',store.sort(this.getDefaultSort()));
                     grid.refresh().then(function(){
+
                         thiz.resize();
                     });
 
                 },
+
                 onItemClick: function (item) {
 
                     if (!item) {
@@ -357,14 +360,31 @@ define([
                     if (this.store) {
                         this.createWidgets(this.store);
                     }
-
-
                 },
                 //////////////////////////////////////////////////////////////
                 //
                 //  Bean impl.
                 //
                 //////////////////////////////////////////////////////////////
+                onReloaded:function(){
+
+                    /*
+                    //this.clear();
+                    var _item = {
+                        level:"error",
+                        host:"asdf",
+                        show:true,
+                        time:10,
+                        type:"asdfasdf",
+                        id:utils.createUUID(),
+                        message:"asdfasdf"
+                    };
+
+                    //this.store.put(_item);
+                    this.grid.renderArray([_item]);
+                    */
+
+                },
                 hasItemActions: function () {
                     return true;
                 },
@@ -372,7 +392,8 @@ define([
                     return this.selectedItem;
                 },
                 clear: function () {
-
+                    this.store.setData([]);
+                    this.grid.refresh();
                 },
                 isLevelEnabled: function (level) {
 
@@ -392,8 +413,8 @@ define([
 
                     return false;
                 },
-                update: function (store) {
-                    this.onLevelChanged(store);
+                update: function (store,message) {
+                    this.onLevelChanged(store,null,null,message);
                 },
                 onShow:function(){
                     this.inherited(arguments);
@@ -412,7 +433,12 @@ define([
                     this.onLevelChanged();
                 },
                 _didSetStore:false,
-                onLevelChanged: function (store,level,enabled) {
+                getDefaultFilter:function(){
+                    return {
+                        show: true
+                    };
+                },
+                onLevelChanged: function (store,level,enabled,message) {
 
                     if (store) {
                         this.store = store;
@@ -431,24 +457,35 @@ define([
                             }
                         }
 
-                        this.grid.set('collection', this.store.filter({
-                            show: true
-                        }));
+                        var filters = this.getFilters();
+                        var defaultFilter =  this.getDefaultFilter();
+                        lang.mixin(defaultFilter,filters);
+                        this.grid.set('collection', this.store.filter(defaultFilter));
 
                     }
 
                     if(store && (!this._didSetStore || this.store!=store)){
+
                         this._didSetStore = true;
-                        //this.grid.set('collection',store);
+
                         this.grid.set('collection',store.filter({
                             show:true
                         }));
-                        //this.grid.set('collection',store.sort(this.getDefaultSort()));
+
+                        this.grid.set('collection',store.sort(this.getDefaultSort()));
                     }
                     if(!this.isVisible()){
+
                         return;
                     }
-                    this.grid.refresh();
+                    if(message!=null){
+
+                        console.log('add message',message);
+                        //this.store.put(_item);
+                        this.grid.renderArray([message]);
+                        this.grid.refresh();
+                    }
+                    //this.grid.refresh();
                 },
                 /**
                  * @returns {xide.widgets.FlagsWidget}
@@ -515,7 +552,7 @@ define([
 
                     actions.push(Action.create('Clear', 'el-icon-remove-sign', 'View/Clear', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
                         function () {
-                            thiz.clear(self);
+                            self.clear(self);
                         }, null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR, {label: ''}));
 
                     actions.push(Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
@@ -523,10 +560,7 @@ define([
                             thiz.reload(self);
                         }, null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR, {label: ''}));
 
-                    actions.push(Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
-                        function () {
-                            thiz.reload(self);
-                        }, null).
+                    actions.push(Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,null).
                         setVisibility(VISIBILITY.MAIN_MENU, {show: false}).
                         setVisibility(VISIBILITY.CONTEXT_MENU, null).
                         setVisibility(VISIBILITY.ACTION_TOOLBAR, {
