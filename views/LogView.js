@@ -463,6 +463,7 @@ define([
                         var defaultFilter =  this.getDefaultFilter();
                         lang.mixin(defaultFilter,filters);
                         this.grid.set('collection', this.store.filter(defaultFilter));
+                        this.grid.set('collection',this.store.sort(this.getDefaultSort()));
 
                     }
 
