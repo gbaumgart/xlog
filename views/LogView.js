@@ -395,6 +395,7 @@ define([
                 clear: function () {
                     this.store.setData([]);
                     this.grid.refresh();
+                    this.delegate.ctx.getLogManager().clear();
                 },
                 isLevelEnabled: function (level) {
 

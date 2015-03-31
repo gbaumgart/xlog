@@ -53,6 +53,7 @@ define([
                 },
                 clear: function () {
 
+                    /*
                     this.store.setData({
                         identifier: "id",
                         label: "level",
@@ -61,7 +62,11 @@ define([
 
                     for (var i = 0; i < this.views.length; i++) {
                         this.views[i].grid.set('collection', this.store.sort(this.views[i].getDefaultSort()));
-                    }
+                    }*/
+
+                    this.runDeferred(null, 'clear', ['unset']).then(function (data) {
+
+                    });
 
                 },
                 getViewTarget: function () {
