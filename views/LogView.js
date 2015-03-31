@@ -342,8 +342,8 @@ define([
                     domClass.add(hider[0], 'ui-widget-content');
                     //grid.set('collection',store.sort(this.getDefaultSort()));
                     grid.refresh().then(function(){
-
                         thiz.resize();
+                        grid.set('collection',store.sort(thiz.getDefaultSort()));
                     });
 
                 },
@@ -474,6 +474,7 @@ define([
                             show:true
                         }));
 
+                        console.error('set default sort!');
                         this.grid.set('collection',store.sort(this.getDefaultSort()));
                     }
                     if(!this.isVisible()){

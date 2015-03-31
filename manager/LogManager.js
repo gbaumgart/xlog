@@ -181,6 +181,7 @@ define([
                 },
                 addLogView:function(view){
                     this.views.push(view);
+
                 },
                 openLogView: function (target,silent) {
 
