@@ -474,8 +474,6 @@ define([
                         this.grid.set('collection',store.filter({
                             show:true
                         }));
-
-                        console.error('set default sort!');
                         this.grid.set('collection',store.sort(this.getDefaultSort()));
                     }
                     if(!this.isVisible()){
