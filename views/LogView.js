@@ -341,11 +341,13 @@ define([
                     var hider = utils.find('.dgrid-hider-menu', this.domNode, false);
                     domClass.add(hider[0], 'ui-widget-content');
                     //grid.set('collection',store.sort(this.getDefaultSort()));
-                    grid.refresh().then(function(){
-                        thiz.resize();
-                        grid.set('collection',store.sort(thiz.getDefaultSort()));
-                    });
-
+                    var dfd  = grid.refresh();
+                    if(dfd && dfd.then){
+                        dfd.then(function(){
+                            thiz.resize();
+                            grid.set('collection',store.sort(thiz.getDefaultSort()));
+                        });
+                    }
                 },
 
                 onItemClick: function (item) {
