@@ -559,12 +559,12 @@ define([
                             self.clear(self);
                         }, null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR, {label: ''}));
 
-                    actions.push(Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
+                    actions.push(Action.create('Reload', 'fa-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,
                         function () {
                             thiz.reload(self);
                         }, null).setVisibility(types.ACTION_VISIBILITY.ACTION_TOOLBAR, {label: ''}));
 
-                    actions.push(Action.create('Reload', 'el-icon-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,null).
+                    actions.push(Action.create('Reload', 'fa-refresh', 'View/Reload', false, null, types.ITEM_TYPE.LOG, 'logAction', null, true,null).
                         setVisibility(VISIBILITY.MAIN_MENU, {show: false}).
                         setVisibility(VISIBILITY.CONTEXT_MENU, null).
                         setVisibility(VISIBILITY.ACTION_TOOLBAR, {
