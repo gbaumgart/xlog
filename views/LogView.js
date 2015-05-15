@@ -116,138 +116,17 @@ define([
                     var momentUnix = moment.unix(data);
                     return momentUnix.format("MMMM Do, h:mm:ss a");
                 },
-                _createPendingEvent: function (message, item, terminatorMessage, id) {
-
-                    var _handle = null,
-                        _progressHandle = null,
-                        _progressFailedHandle = null,
-                        thiz = this,
-                        _id = id;
-
-                    item._isInProgress = true;
-
-                    function _onEnd (evt) {
-
-                        console.log('_on end',arguments);
-                        if (!item._isTerminated && _handle) {
-                            item.message = item.oriMessage + ' : Done';
-                            //turn into error!
-                            if (evt && evt.failed === true) {
-                                item.level = 'error';
-                                item.message = item.oriMessage + ' : Failed';
-                            }
-                            item._isTerminated = true;
-                            _handle.remove();
-                            _handle = null;
-                            thiz.grid.refresh();
-                            if (_progressHandle != null) {
-                                _progressHandle.remove();
-                            }
-                        }
-                    }
-
-                    _handle = thiz.subscribe(terminatorMessage,_onEnd,thiz)[0];
-
-
-                    if (item.showProgress && item.progressMessage) {
-
-                        function ProgressHandler() {
-                            this.bytesLoaded = null;
-                            this.percentValue = null;
-                            this.item = null;
-                            /**
-                             *
-                             */
-                            this._onProgressFailed = function (data) {
-
-                                this.item.level = 'error';
-                                this.item.message = item.oriMessage + ' : Failed';
-                                this.item._isTerminated = true;
-
-                                //gee, can't we do better ?
-                                if(data && data.item && data.item.error && this.item.details){
-                                    this.item.details['error'] = data.item.error;
-                                }
-
-
-                                if (_handle) {
-                                    _handle.remove();
-                                    _handle = null;
-                                }
-
-                                if (_progressHandle != null) {
-                                    _progressHandle.remove();
-                                    _progressHandle = null;
-                                }
-
-                                thiz.grid.refresh();
-
-                                _progressFailedHandle.remove();
-                                _progressFailedHandle = null;
-
-
-                            };
-                            /**
-                             *
-                             */
-                            this._onProgress = function (data) {
-
-                                try {
-
-                                    var computableEvent = data.progress;
-                                    var percentage = null;
-                                    if (percentage == null) {
-                                        percentage = Math.round((computableEvent.loaded * 100) / computableEvent.total);
-                                        this.bytesLoaded = computableEvent.loaded;
-                                    }
-
-                                    if (this.percentValue != percentage) {
-                                        var _newMessage = '' + this.item.oriMessage;
-                                        _newMessage += ' : ' + percentage + '%';
-                                        this.item.message = '' + _newMessage;
-                                        thiz.grid.refresh();
-                                    }
-                                    this.percentValue = percentage;
-
-                                    if (this.percentValue >= 100) {
-                                        this.item.message = this.item.oriMessage + ' : Done';
-                                        _progressHandle.remove();
-                                        _progressHandle = null;
-                                        if (_handle) {
-                                            _handle.remove();
-                                            _handle = null;
-                                        }
-                                        this.item._isTerminated = true;
-                                        thiz.grid.refresh();
-                                    }
-
-                                } catch (e) {
-                                    console.error('crash in log progress ' + e);
-                                }
-                            }
-                        }
-
-                        var progressObject = new ProgressHandler();
-                        progressObject.item = item;
-                        _progressHandle = dojo.subscribe(item.progressMessage, lang.hitch(progressObject, progressObject._onProgress));
-                        if (item.progressFailedMessage) {
-                            _progressFailedHandle = dojo.subscribe(item.progressFailedMessage, lang.hitch(progressObject, progressObject._onProgressFailed));
-                        }
-                    }
-
-                },
                 getMessageFormatter: function (message, item) {
-                    var _isTerminated = item.terminatorMessage != null && !item._isTerminated;
-
-                    if (_isTerminated) {
-
-                        /*
-                        if (item.oriMessage == null) {
-                            item.oriMessage = '' + item.message;
-                        }
-                        this._createPendingEvent(message, item, item.terminatorMessage, item.time);
+                    var thiz = this;
+                    if(item.progressHandler && !item._subscribedToProgress){
+                        item.progressHandler._on('progress',function(_message){
+                            thiz.refresh();
+                        });
+                        item._subscribedToProgress = true;
+                    }
+                    var _isTerminated = item.terminatorMessage != null && item._isTerminated===true;
+                    if (!_isTerminated) {
                         return '<span class=\"fa-spinner fa-spin\" style=\"margin-right: 4px\"></span>' + message;
-                        */
                     }
                     return message;
                 },
@@ -334,7 +213,7 @@ define([
                         collection: store.sort(this.getDefaultSort()),
                         columns: this.getColumns(),
                         cellNavigation: false,
-                        deselectOnRefresh: true,
+                        deselectOnRefresh: false,
                         rowsPerPage: 10,
                         farOffRemoval:600
                     }, this.containerNode);
@@ -428,6 +307,7 @@ define([
                     this.dirty=true;
                 },
                 onShow:function(){
+
                     this.inherited(arguments);
                     this.resize();
 
@@ -436,11 +316,9 @@ define([
                     }
 
                     if(this.dirty && this.isVisible()){
-                        console.log('update irty');
                         this.dirty=false;
                         if(this.store){
 
-                            //this._didSetStore = true;
                             this.grid.set('collection',this.store.filter({
                                 show:true
                             }));

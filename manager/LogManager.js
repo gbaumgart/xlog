@@ -20,21 +20,32 @@ define([
             bytesLoaded: null,
             percentValue: null,
             item: null,
+            delegate:null,
+            _onEnd:null,
+            _onHandle:null,
+
             constructor: function (item) {
                 this.item = item;
                 this.subscribe(item.progressMessage, this._onProgress);
                 this.subscribe(item.progressFailedMessage, this._onProgressFailed);
             },
             _onProgressFailed: function (data) {
-
                 this.item.level = 'error';
                 this.item.message = this.item.oriMessage + ' : Failed';
                 this.item._isTerminated = true;
-
                 //gee, can't we do better ?
                 if (data && data.item && data.item.error && this.item.details) {
                     this.item.details['error'] = data.item.error;
                 }
+            },
+            _onFinish:function(){
+                if(this._onHandle){
+                    this._onHandle.remove();
+                }
+            },
+            destroy:function(){
+
+                this._destroyHandles();
             },
             _onProgress: function (data) {
 
@@ -54,12 +65,13 @@ define([
 
                     this.percentValue = percentage;
                     this._emit('progress');
-
                     if (this.percentValue >= 100) {
                         this.item.message = this.item.oriMessage + ' : Done';
-                        this.item._isTerminated = true;
+                        //this.item._isTerminated = true;
                         this._emit('finish');
-                        this._destroyHandles();
+                        //this._destroyHandles();
+                        this._onFinish();
+                        this.destroy();
                     }
 
                 } catch (e) {
@@ -258,24 +270,25 @@ define([
                 _createPendingEvent: function (message, item, terminatorMessage, id) {
 
                     var _handle = null,
-                        _progressHandle = null,
-                        _progressFailedHandle = null,
-                        thiz = this,
-                        _id = id;
+                        thiz = this;
 
                     item._isInProgress = true;
+
+                    console.log('pending event ' + message + ' = ' + terminatorMessage + ' id',item);
 
                     function _onEnd(evt) {
 
                         console.log('_on end', arguments);
 
                         if (!item._isTerminated && _handle) {
+
                             item.message = item.oriMessage + ' : Done';
                             //turn into error!
                             if (evt && evt.failed === true) {
                                 item.level = 'error';
                                 item.message = item.oriMessage + ' : Failed';
                             }
+                            //console.log('is terminated!');
                             item._isTerminated = true;
                             _handle.remove();
                             _handle = null;
@@ -284,7 +297,7 @@ define([
 
                             var _e = item;
                             if (item.progressHandler) {
-                                item.progressHandler._destroyHandles();
+                                item.progressHandler.destroy();
                             }
                         }
                     }
@@ -365,9 +378,12 @@ define([
                          }
                          */
                         if(!item.progressHandler) {
-                            var progressObject = new _ProgressHandler(item);
+                            var progressObject = new _ProgressHandler(item,this);
+                            progressObject._onEnd = _onEnd;
+                            progressObject._onEndHandle = _handle;
                             //progressObject.item = item;
                             item.progressHandler = progressObject;
+
                         }
 
                         //_progressHandle = dojo.subscribe(item.progressMessage, lang.hitch(progressObject, progressObject._onProgress));
