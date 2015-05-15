@@ -10,9 +10,65 @@ define([
         "dojo/json",
         "xide/data/Memory",
         'xlog/views/LogView',
-        'xide/mixins/ReloadMixin'
+        'xide/mixins/ReloadMixin',
+        'xide/mixins/EventedMixin'
     ],
-    function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json, Memory, LogView, ReloadMixin) {
+    function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json, Memory, LogView, ReloadMixin, EventedMixin) {
+
+
+        var _ProgressHandler = declare([EventedMixin], {
+            bytesLoaded: null,
+            percentValue: null,
+            item: null,
+            constructor: function (item) {
+                this.item = item;
+                this.subscribe(item.progressMessage, this._onProgress);
+                this.subscribe(item.progressFailedMessage, this._onProgressFailed);
+            },
+            _onProgressFailed: function (data) {
+
+                this.item.level = 'error';
+                this.item.message = this.item.oriMessage + ' : Failed';
+                this.item._isTerminated = true;
+
+                //gee, can't we do better ?
+                if (data && data.item && data.item.error && this.item.details) {
+                    this.item.details['error'] = data.item.error;
+                }
+            },
+            _onProgress: function (data) {
+
+                try {
+                    var computableEvent = data.progress;
+                    var percentage = null;
+                    if (percentage == null) {
+                        percentage = Math.round((computableEvent.loaded * 100) / computableEvent.total);
+                        this.bytesLoaded = computableEvent.loaded;
+                    }
+
+                    if (this.percentValue != percentage) {
+                        var _newMessage = '' + this.item.oriMessage;
+                        _newMessage += ' : ' + percentage + '%';
+                        this.item.message = '' + _newMessage;
+                    }
+
+                    this.percentValue = percentage;
+                    this._emit('progress');
+
+                    if (this.percentValue >= 100) {
+                        this.item.message = this.item.oriMessage + ' : Done';
+                        this.item._isTerminated = true;
+                        this._emit('finish');
+                        this._destroyHandles();
+                    }
+
+                } catch (e) {
+                    console.error('crash in log progress ' + e);
+                }
+            }
+        });
+
+
         return declare("xide.manager.LogManager", [ServerActionBase, BeanManager, ReloadMixin],
             {
 
@@ -54,15 +110,15 @@ define([
                 clear: function () {
 
                     /*
-                    this.store.setData({
-                        identifier: "id",
-                        label: "level",
-                        items: []
-                    });
+                     this.store.setData({
+                     identifier: "id",
+                     label: "level",
+                     items: []
+                     });
 
-                    for (var i = 0; i < this.views.length; i++) {
-                        this.views[i].grid.set('collection', this.store.sort(this.views[i].getDefaultSort()));
-                    }*/
+                     for (var i = 0; i < this.views.length; i++) {
+                     this.views[i].grid.set('collection', this.store.sort(this.views[i].getDefaultSort()));
+                     }*/
 
                     this.runDeferred(null, 'clear', ['unset']).then(function (data) {
 
@@ -124,7 +180,7 @@ define([
                         items: [],
                         sort: 'time'
                     };
-                    if(data.length==0){
+                    if (data.length == 0) {
                         data = [];
                     }
 
@@ -134,11 +190,11 @@ define([
                     }
                     try {
                         this.store = new Memory({
-                            idProperty:'id',
+                            idProperty: 'id',
                             data: sdata
                         });
-                    }catch(e){
-                        console.error('log creation failed: ',e);
+                    } catch (e) {
+                        console.error('log creation failed: ', e);
                     }
 
                     return this.store;
@@ -164,33 +220,165 @@ define([
                             store: store,
                             title: 'Log',
                             closable: true,
-                            style:'padding:0px',
-                            silent:silent
+                            style: 'padding:0px',
+                            silent: silent
                         }, this, parent, true);
                     } catch (e) {
                         console.error(e);
                     }
 
                 },
-                updateViews: function (store,message) {
+                updateViews: function (store, message) {
 
                     for (var i = 0; i < this.views.length; i++) {
                         var view = this.views[i];
-                        view.update(store,message);
+                        view.update(store, message);
                     }
                 },
-                addLogView:function(view){
+                refreshViews: function (store, message) {
+
+                    for (var i = 0; i < this.views.length; i++) {
+                        var view = this.views[i];
+                        view.grid.refresh();
+                    }
+                },
+                addLogView: function (view) {
                     this.views.push(view);
 
                 },
-                openLogView: function (target,silent) {
+                openLogView: function (target, silent) {
 
                     if (!this.isValid()) {
                         this.initStore([]);
                     }
-                    var logView = this.createLoggingView(this.store,target,silent);
+                    var logView = this.createLoggingView(this.store, target, silent);
                     this.views.push(logView);
                     return logView;
+                },
+                _createPendingEvent: function (message, item, terminatorMessage, id) {
+
+                    var _handle = null,
+                        _progressHandle = null,
+                        _progressFailedHandle = null,
+                        thiz = this,
+                        _id = id;
+
+                    item._isInProgress = true;
+
+                    function _onEnd(evt) {
+
+                        console.log('_on end', arguments);
+
+                        if (!item._isTerminated && _handle) {
+                            item.message = item.oriMessage + ' : Done';
+                            //turn into error!
+                            if (evt && evt.failed === true) {
+                                item.level = 'error';
+                                item.message = item.oriMessage + ' : Failed';
+                            }
+                            item._isTerminated = true;
+                            _handle.remove();
+                            _handle = null;
+                            //thiz.grid.refresh();
+                            thiz.refreshViews();
+
+                            var _e = item;
+                            if (item.progressHandler) {
+                                item.progressHandler._destroyHandles();
+                            }
+                        }
+                    }
+
+                    _handle = thiz.subscribe(terminatorMessage, _onEnd, thiz)[0];
+
+
+                    if (item.showProgress && item.progressMessage) {
+                        /*
+                         function ProgressHandler() {
+                         this.bytesLoaded = null;
+                         this.percentValue = null;
+                         this.item = null;
+                         this._onProgressFailed = function (data) {
+
+                         this.item.level = 'error';
+                         this.item.message = item.oriMessage + ' : Failed';
+                         this.item._isTerminated = true;
+
+                         //gee, can't we do better ?
+                         if(data && data.item && data.item.error && this.item.details){
+                         this.item.details['error'] = data.item.error;
+                         }
+
+
+                         if (_handle) {
+                         _handle.remove();
+                         _handle = null;
+                         }
+
+                         if (_progressHandle != null) {
+                         _progressHandle.remove();
+                         _progressHandle = null;
+                         }
+
+                         //thiz.grid.refresh();
+
+                         _progressFailedHandle.remove();
+                         _progressFailedHandle = null;
+
+
+                         };
+                         this._onProgress = function (data) {
+
+                         try {
+
+                         var computableEvent = data.progress;
+                         var percentage = null;
+                         if (percentage == null) {
+                         percentage = Math.round((computableEvent.loaded * 100) / computableEvent.total);
+                         this.bytesLoaded = computableEvent.loaded;
+                         }
+
+                         if (this.percentValue != percentage) {
+                         var _newMessage = '' + this.item.oriMessage;
+                         _newMessage += ' : ' + percentage + '%';
+                         this.item.message = '' + _newMessage;
+                         //thiz.grid.refresh();
+                         }
+                         this.percentValue = percentage;
+
+                         if (this.percentValue >= 100) {
+                         this.item.message = this.item.oriMessage + ' : Done';
+                         _progressHandle.remove();
+                         _progressHandle = null;
+                         if (_handle) {
+                         _handle.remove();
+                         _handle = null;
+                         }
+                         this.item._isTerminated = true;
+                         //thiz.grid.refresh();
+                         }
+
+                         } catch (e) {
+                         console.error('crash in log progress ' + e);
+                         }
+                         }
+                         }
+                         */
+                        if(!item.progressHandler) {
+                            var progressObject = new _ProgressHandler(item);
+                            //progressObject.item = item;
+                            item.progressHandler = progressObject;
+                        }
+
+                        //_progressHandle = dojo.subscribe(item.progressMessage, lang.hitch(progressObject, progressObject._onProgress));
+
+                        /*
+                         if (item.progressFailedMessage) {
+                         _progressFailedHandle = dojo.subscribe(item.progressFailedMessage, lang.hitch(progressObject, progressObject._onProgressFailed));
+                         }
+                         */
+                    }
+
                 },
                 addLoggingMessage: function (msg) {
 
@@ -198,18 +386,18 @@ define([
                         id: utils.createUUID(),
                         level: msg.level,
                         message: msg.message,
-                        host: msg.host||'',
+                        host: msg.host || '',
                         data: msg.data || {},
                         time: msg.time || new Date().getTime(),
-                        type: msg.type||'',
+                        type: msg.type || '',
                         show: true,
                         showDevice: true,
                         terminatorItem: msg.item,
                         terminatorMessage: msg.terminatorMessage,
-                        showProgress:msg.showProgress,
-                        progressMessage:msg.progressMessage,
-                        progressFailedMessage:msg.progressFailedMessage,
-                        details:msg.details
+                        showProgress: msg.showProgress,
+                        progressMessage: msg.progressMessage,
+                        progressFailedMessage: msg.progressFailedMessage,
+                        details: msg.details
                     };
 
                     if (msg.data) {
@@ -228,17 +416,32 @@ define([
                         this.initStore([]);
                     }
                     try {
+
+                        var _isTerminated = item.terminatorMessage != null && !item._isTerminated;
+                        if (_isTerminated) {
+                            if (item.oriMessage == null) {
+                                item.oriMessage = '' + item.message;
+                            }
+
+                            this._createPendingEvent(item.oriMessage, item, item.terminatorMessage, item.time);
+                            //return '<span class=\"fa-spinner fa-spin\" style=\"margin-right: 4px\"></span>' + message;
+                        }
+
                         this.getStore().put(item);
-                    }catch(e){
+                    } catch (e) {
                         console.error('adding log message to store failed ' + e);
                     }
-                    this.updateViews(this.getStore(),msg);
+                    try {
+                        this.updateViews(this.getStore(), msg);
+                    } catch (e) {
+                        console.error('', e);
+                    }
                 },
                 onServerLogMessage: function (evt) {
                     this.addLoggingMessage(evt);
                     this.updateViews();
                 },
-                onMainViewReady:function(){
+                onMainViewReady: function () {
 
                 },
                 /////////////////////////////////////////////////////////////////////////////////////
@@ -309,7 +512,7 @@ define([
                     var _cb = function (data) {
                         //keep a copy
                         thiz.rawData = data;
-                        if(lang.isString(data)){
+                        if (lang.isString(data)) {
                             data = utils.getJson(data);
                         }
                         thiz.initStore(data);

@@ -27,7 +27,6 @@ define([
             item:null,
             constructor:function(item){
                 this.item = item;
-
             },
             _onProgressFailed : function (data) {
 
@@ -105,6 +104,7 @@ define([
                 sourceField: 'host',
                 showSource: true,
                 _eventKeys: {},
+                dirty:true,
                 getFilters:function(){
                     return {};
                 },
@@ -128,6 +128,7 @@ define([
 
                     function _onEnd (evt) {
 
+                        console.log('_on end',arguments);
                         if (!item._isTerminated && _handle) {
                             item.message = item.oriMessage + ' : Done';
                             //turn into error!
@@ -239,11 +240,14 @@ define([
                     var _isTerminated = item.terminatorMessage != null && !item._isTerminated;
 
                     if (_isTerminated) {
+
+                        /*
                         if (item.oriMessage == null) {
                             item.oriMessage = '' + item.message;
                         }
                         this._createPendingEvent(message, item, item.terminatorMessage, item.time);
                         return '<span class=\"fa-spinner fa-spin\" style=\"margin-right: 4px\"></span>' + message;
+                        */
                     }
                     return message;
                 },
@@ -349,7 +353,6 @@ define([
                         });
                     }
                 },
-
                 onItemClick: function (item) {
 
                     if (!item) {
@@ -420,20 +423,45 @@ define([
                 update: function (store,message) {
                     this.onLevelChanged(store,null,null,message);
                 },
+                onHide:function(){
+                    this.inherited(arguments);
+                    this.dirty=true;
+                },
                 onShow:function(){
                     this.inherited(arguments);
-
                     this.resize();
 
                     if (this.onResize) {
                         this.onResize();
                     }
-                    if(this.silent!==false) {
-                        this.publish(types.EVENTS.ON_VIEW_SHOW, {
-                            view: this
-                        });
-                        this.silent=false;
+
+                    if(this.dirty && this.isVisible()){
+                        console.log('update irty');
+                        this.dirty=false;
+                        if(this.store){
+
+                            //this._didSetStore = true;
+                            this.grid.set('collection',this.store.filter({
+                                show:true
+                            }));
+                            this.grid.set('collection',this.store.sort(this.getDefaultSort()));
+                            this.grid.refresh();
+                        }
                     }
+
+                    try {
+                        if (this.silent !== false) {
+                            this.publish(types.EVENTS.ON_VIEW_SHOW, {
+                                view: this
+                            });
+                            this.silent = false;
+                        }
+                    }catch(e){
+                        console.error('bad!');
+                    }
+
+
+
                     this.onLevelChanged();
                 },
                 _didSetStore:false,
