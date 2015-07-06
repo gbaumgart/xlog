@@ -8,7 +8,7 @@ define([
         "dgrid/Keyboard",
         "dgrid/Editor",
         "xide/views/GridView",
-        "dgrid/extensions/ColumnHider",
+        "xgrid/ColumnHider",
         "dgrid/extensions/ColumnResizer",
         "dgrid/extensions/ColumnReorder",
         'xide/types',
