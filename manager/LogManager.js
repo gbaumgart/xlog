@@ -526,6 +526,10 @@ define([
                     var thiz = this;
 
                     var _cb = function (data) {
+
+
+                        console.warn('logging manager : ls:: got data',data);
+
                         //keep a copy
                         thiz.rawData = data;
                         if (lang.isString(data)) {
