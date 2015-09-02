@@ -23,7 +23,7 @@ define([
             delegate:null,
             _onEnd:null,
             _onHandle:null,
-
+            serviceClass: 'XIDE_Log_Service',
             constructor: function (item) {
                 this.item = item;
                 this.subscribe(item.progressMessage, this._onProgress);
