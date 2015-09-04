@@ -7,15 +7,19 @@ define([
     'xgrid/Defaults',
     'xgrid/Focus',
     'xgrid/KeyboardNavigation',
+    'xgrid/Search',
     'dgrid/OnDemandGrid',
     'xide/mixins/EventedMixin',
     'xide/utils'
 
 ], function (declare,types,
-             ListRenderer, Grid, Defaults, Focus,KeyboardNavigation,
+             ListRenderer, Grid, Defaults, Focus,KeyboardNavigation,Search,
              OnDemandGrid, EventedMixin,utils) {
 
 
+    /**
+     * @class module:xgrid/views/LogGrid
+     */
     var GridClass = Grid.createGridClass('log',
         {
             options: utils.clone(types.DEFAULT_GRID_OPTIONS)
@@ -31,6 +35,9 @@ define([
             TOOLBAR: types.GRID_FEATURES.TOOLBAR,
             FILTER:{
                 CLASS:KeyboardNavigation
+            },
+            SEARCH:{
+                CLASS:Search
             }
 
         },
@@ -54,7 +61,8 @@ define([
         }
     );
 
-    var logGridClass = declare("xlog.views.LogView", GridClass, {
+    return declare("xlog.views.LogView", GridClass, {
+
         postMixInProperties: function () {
             this.columns = this.getColumns();
             return this.inherited(arguments);
@@ -154,7 +162,4 @@ define([
             return columns;
         }
     });
-
-    return logGridClass;
-
 });
