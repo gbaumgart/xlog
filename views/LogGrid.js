@@ -8,13 +8,15 @@ define([
     'xgrid/Focus',
     'xgrid/KeyboardNavigation',
     'xgrid/Search',
+    'xgrid/Layout',
     'dgrid/OnDemandGrid',
     'xide/mixins/EventedMixin',
-    'xide/utils'
+    'xide/utils',
+    'xide/action/DefaultActions'
 
 ], function (declare,types,
-             ListRenderer, Grid, Defaults, Focus,KeyboardNavigation,Search,
-             OnDemandGrid, EventedMixin,utils) {
+             ListRenderer, Grid, Defaults, Focus,KeyboardNavigation,Search,Layout,
+             OnDemandGrid, EventedMixin,utils,DefaultActions) {
 
 
     /**
@@ -31,7 +33,7 @@ define([
             KEYBOARD_SELECTION: true,
             PAGINATION: types.GRID_FEATURES.PAGINATION,
             ACTIONS: types.GRID_FEATURES.ACTIONS,
-            //CONTEXT_MENU: types.GRID_FEATURES.CONTEXT_MENU,
+            CONTEXT_MENU: types.GRID_FEATURES.CONTEXT_MENU,
             TOOLBAR: types.GRID_FEATURES.TOOLBAR,
             FILTER:{
                 CLASS:KeyboardNavigation
@@ -53,7 +55,7 @@ define([
         {
             GRID: OnDemandGrid,
             EDITOR: null,
-            LAYOUT: null,
+            LAYOUT: Layout,
             DEFAULTS: Defaults,
             RENDERER: ListRenderer,
             EVENTED: EventedMixin,
@@ -61,8 +63,29 @@ define([
         }
     );
 
-    return declare("xlog.views.LogView", GridClass, {
+    var ACTION = types.ACTION;
 
+
+    return declare("xlog.views.LogView", GridClass, {
+        rowsPerPage: 30,
+        minRowsPerPage: 100,
+        _columns: {
+            "Level": true,
+            "Type": false,
+            "Message": true,
+            "Time": false
+        },
+        permissions: [
+            //ACTION.EDIT,
+            ACTION.RELOAD,
+            ACTION.DELETE,
+            ACTION.LAYOUT,
+            ACTION.COLUMNS,
+            ACTION.SELECTION,
+            ACTION.PREVIEW,
+            ACTION.SAVE,
+            ACTION.SEARCH
+        ],
         postMixInProperties: function () {
             this.columns = this.getColumns();
             return this.inherited(arguments);
@@ -160,6 +183,15 @@ define([
                 delete columns['Host'];
             }
             return columns;
+        },
+        startup:function(){
+
+            this.inherited(arguments);
+
+            var permissions = this.permissions,
+                _defaultActions = DefaultActions.getDefaultActions(permissions, this);
+                this.addActions(_defaultActions);
+                this.onContainerClick();
         }
     });
 });
