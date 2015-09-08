@@ -398,6 +398,9 @@ define([
                 },
                 addLoggingMessage: function (msg) {
 
+
+                    console.log('addLoggingMessage');
+
                     var item = {
                         id: utils.createUUID(),
                         level: msg.level,

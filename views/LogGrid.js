@@ -163,11 +163,18 @@ define([
                     }
                 },
                 Time: {
-                    field: "time", // get whole item for use by formatter
+                    field: "timeStr", // get whole item for use by formatter
                     label: "Time",
                     sortable: true,
-                    formatter: function (time) {
-                        return thiz.formatDateSimple(time / 1000);
+                    get:function(object){
+                        //console.log('get',arguments);
+                        return object.time;
+                    },
+                    formatter: function (time,object) {
+                        if(!object.timeStr){
+                            object.timeStr =thiz.formatDateSimple(object.time / 1000);
+                        }
+                        return object.timeStr;
                     }
                 }/*,
                  Details:{
@@ -188,10 +195,17 @@ define([
 
             this.inherited(arguments);
 
+            this.set('collection',this.collection.sort(this.getDefaultSort()));
+
+
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
-                this.addActions(_defaultActions);
-                this.onContainerClick();
+
+            this.addActions(_defaultActions);
+
+            this.onContainerClick();
+
+
         }
     });
 });
