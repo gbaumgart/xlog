@@ -202,10 +202,8 @@ define([
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
 
             this.addActions(_defaultActions);
-
             this.onContainerClick();
-
-
+            this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
         }
     });
 });
