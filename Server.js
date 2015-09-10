@@ -31,19 +31,20 @@ define([
         start: function (options) {
 
             if (options.fileLogger) {
-                this.fileLogger = winston.add(winston.transports.File, options.fileLogger);
-                if (this.publishLog) {
 
+                this.fileLogger = winston.add(winston.transports.File, options.fileLogger);
+
+                if (this.publishLog) {
                     this.fileLogger.on('logging', function (transport, level, msg, meta) {
 
-
-                        factory.publish(types.EVENTS.ON_SERVER_LOG_MESSAGE, {
-                            /*transport:transport,*/
+                        var args = {
                             level: level,
                             message: msg,
                             data: meta,
                             time: new Date().getTime()
-                        });
+                        };
+                        //console.log('publish server log message');
+                        factory.publish(types.EVENTS.ON_SERVER_LOG_MESSAGE,args);
                     });
                 }
             }

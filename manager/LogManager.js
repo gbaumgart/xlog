@@ -120,21 +120,7 @@ define([
                     cookie(_cookie, json.stringify(settings));
                 },
                 clear: function () {
-
-                    /*
-                     this.store.setData({
-                     identifier: "id",
-                     label: "level",
-                     items: []
-                     });
-
-                     for (var i = 0; i < this.views.length; i++) {
-                     this.views[i].grid.set('collection', this.store.sort(this.views[i].getDefaultSort()));
-                     }*/
-
-                    this.runDeferred(null, 'clear', ['unset']).then(function (data) {
-
-                    });
+                    this.runDeferred(null, 'clear', ['unset']).then(function (data) {});
 
                 },
                 getViewTarget: function () {
@@ -152,6 +138,10 @@ define([
                     return this.store != null;
                 },
                 _buildLoggingMessage: function (msg) {
+
+                    if (!msg.time){
+                        console.error('logging message has no time!',msg);
+                    }
                     var item = {
                         id: utils.createUUID(),
                         level: msg.level,
@@ -163,6 +153,7 @@ define([
                         show: true,
                         showDevice: true
                     };
+
 
 
                     if (msg.type) {
@@ -457,8 +448,22 @@ define([
                     }
                 },
                 onServerLogMessage: function (evt) {
+
                     this.addLoggingMessage(evt);
+
                     this.updateViews();
+
+
+
+                    if(evt.write==true){
+                        this.publish(types.EVENTS.ON_CLIENT_LOG_MESSAGE,{
+                            message:evt.message,
+                            data:evt.data,
+                            details:evt.details,
+                            level:evt.level,
+                            type:evt.type
+                        });
+                    }
                 },
                 onMainViewReady: function () {
 

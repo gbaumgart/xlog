@@ -19,6 +19,8 @@ define([
              OnDemandGrid, EventedMixin,utils,DefaultActions) {
 
 
+
+
     /**
      * @class module:xgrid/views/LogGrid
      */
@@ -135,7 +137,7 @@ define([
                             {
                                 return '<span class="text-danger" style=\"">' + level + '</span>';
                             }
-                            case 'warning':
+                            case 'warn':
                             {
                                 return '<span class="text-warning" style=\"">' + level + '</span>';
                             }
