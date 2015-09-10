@@ -178,7 +178,7 @@ define([
                 initStore: function (data) {
 
                     var sdata = {
-                        identifier: "id",
+                        identifier: "time",
                         label: "level",
                         items: [],
                         sort: 'time'
@@ -192,10 +192,12 @@ define([
                         sdata.items.push(this._buildLoggingMessage(item));
                     }
                     try {
+
                         this.store = new Memory({
-                            idProperty: 'id',
+                            idProperty: 'time',
                             data: sdata
                         });
+
                     } catch (e) {
                         console.error('log creation failed: ', e);
                     }
@@ -390,7 +392,9 @@ define([
                 addLoggingMessage: function (msg) {
 
 
-                    console.log('addLoggingMessage');
+
+                    console.log('addLoggingMessage : ' + msg.time);
+
 
                     var item = {
                         id: utils.createUUID(),
@@ -449,6 +453,9 @@ define([
                 },
                 onServerLogMessage: function (evt) {
 
+                    if(evt.data && evt.data.time){
+                        evt.time = evt.data.time;
+                    }
                     this.addLoggingMessage(evt);
 
                     this.updateViews();
@@ -461,7 +468,8 @@ define([
                             data:evt.data,
                             details:evt.details,
                             level:evt.level,
-                            type:evt.type
+                            type:evt.type,
+                            time:evt.data.time ||  evt.time
                         });
                     }
                 },
