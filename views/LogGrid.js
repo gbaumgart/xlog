@@ -71,6 +71,14 @@ define([
     return declare("xlog.views.LogView", GridClass, {
         rowsPerPage: 30,
         minRowsPerPage: 100,
+
+        /**
+         * Stubs
+         */
+        delegate:{
+            getStore:function(){},
+            removeStore:function(){}
+        },
         _columns: {
             "Level": true,
             "Type": false,
@@ -88,6 +96,28 @@ define([
             ACTION.SAVE,
             ACTION.SEARCH
         ],
+        runAction:function(action){
+
+            var thiz = this;
+            if(action.command==='File/Reload'){
+                this.delegate.removeStore(this.storeId);
+                this.delegate.getStore(this.storeId).then(function(_store){
+                    thiz.collection = _store;
+                    thiz.set('collection',thiz.collection.filter(thiz.getRootFilter()).sort(thiz.getDefaultSort()));
+                });
+
+            }
+            if(action.command==='File/Delete'){
+                this.delegate.empty(this.storeId);
+                this.set('collection',this.collection.filter(this.getRootFilter()).sort(this.getDefaultSort()));
+            }
+            return this.inherited(arguments);
+        },
+        getRootFilter:function(){
+            return {
+                show:true
+            }
+        },
         postMixInProperties: function () {
             this.columns = this.getColumns();
             return this.inherited(arguments);

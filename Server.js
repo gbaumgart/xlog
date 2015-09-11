@@ -14,6 +14,7 @@ define([
         loggly: null,
         delegate: null,
         publishLog: true,
+        loggers:{},
         /***
          * Standard constructor for all subclassing bindings
          * @param {array} arguments
@@ -28,13 +29,61 @@ define([
                 }
             }
         },
+        createLogger:function(options){
+
+            var logger = new (winston.Logger)({
+                transports: [
+                    /*new (winston.transports.Console)(),*/
+                    new (winston.transports.File)(options)/*,
+                    new (winston.transports.FileRotateDate)({
+                    })*/
+                ]
+            });
+
+            if (this.publishLog) {
+
+                logger.on('logging', function (transport, level, msg, meta) {
+
+
+                    meta.logId = options.filename;
+
+                    var args = {
+                        level: level,
+                        message: msg,
+                        data: meta,
+                        time: new Date().getTime()
+
+                    };
+                    //console.log('publish server log message');
+                    factory.publish(types.EVENTS.ON_SERVER_LOG_MESSAGE,args);
+                });
+            }
+            //this.loggers[options.fileName] = logger;
+            /*
+
+            var logger = winston.add(winston.transports.File, options);
+
+            this.loggers[options.fileName] = logger;
+
+
+            */
+
+            return logger;
+        },
         start: function (options) {
+
+            this.loggers = {};
+
+            this.options = options;
+
+
 
             if (options.fileLogger) {
 
                 this.fileLogger = winston.add(winston.transports.File, options.fileLogger);
 
                 if (this.publishLog) {
+
                     this.fileLogger.on('logging', function (transport, level, msg, meta) {
 
                         var args = {

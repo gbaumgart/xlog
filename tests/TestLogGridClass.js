@@ -407,10 +407,6 @@ define([
         _lastItem:null
     };
 
-
-
-    console.clear();
-
     function createKeyNav(){
         return declare('xide/grid/_GridKeyNavMixin',Destroyable, {
             // summary:
@@ -984,9 +980,6 @@ define([
         });
 
 
-
-
-
         /**
          * Block grid base class.
          * @class module:xblox/views/Grid
@@ -1035,19 +1028,11 @@ define([
             }
         );
 
-
-
         return GridClass;
 
     }
 
-
-
     function createGridClass(overrides) {
-
-
-
-
 
         /*
          FILTER:{
@@ -2519,35 +2504,24 @@ define([
 
         var logGridClass = createLogGridClass();
 
+
+
         if(device){
             console.log('device : ', device);
         }
 
+        console.log('add log');
+
+        var info = device.info;
 
 
-
-        // default grid args
-        var gridArgs = {
-            ctx:ctx,
-            attachDirect:true,
-            collection: store.filter({
-                show:true,
-                host:device.info.host + ':' + device.info.port
-            })
-        };
-
-
-        var items = store.query({
-            show:true,
-            host:"192.168.1.20:23"
-        });
+        var storeId = info.host + '_' + info.port + '_' + info.protocol;
 
 
 
 
 
-
-        var logGridClass = declare("xlog.views.LogView", logGridClass, {
+        logGridClass = declare("xlog.views.LogView", logGridClass, {
             _columns: {
                 "Level": true,
                 "Type": false,
@@ -2565,6 +2539,29 @@ define([
                 ACTION.SAVE,
                 ACTION.SEARCH
             ],
+            getRootFilter:function(){
+                return {
+                    show:true,
+                    host:device.info.host + ':' + device.info.port
+                }
+            },
+            runAction:function(action){
+
+                var thiz = this;
+                if(action.command==='File/Reload'){
+                    this.delegate.removeStore(this.storeId);
+                    this.delegate.getStore(this.storeId).then(function(_store){
+                        thiz.collection = _store;
+                        thiz.set('collection',thiz.collection.filter(thiz.getRootFilter()).sort(thiz.getDefaultSort()));
+                    });
+
+                }
+                if(action.command==='File/Delete'){
+                    this.delegate.empty(this.storeId);
+                    this.set('collection',this.collection.filter(this.getRootFilter()).sort(this.getDefaultSort()));
+                }
+                return this.inherited(arguments);
+            },
             postMixInProperties: function () {
                 this.columns = this.getColumns();
                 return this.inherited(arguments);
@@ -2659,16 +2656,12 @@ define([
                     }
                 };
 
-
-
-
-
-
-
-
                 if (!this.showSource) {
                     delete columns['Host'];
                 }
+
+
+
                 return columns;
             },
             startup:function(){
@@ -2682,19 +2675,49 @@ define([
 
                     var _defaultActions = DefaultActions.getDefaultActions(permissions, this);
                     //_defaultActions = _defaultActions.concat(this.getBlockActions(permissions));
-
                     this.addActions(_defaultActions);
-                    //this.onContainerClick();
+                    this.onContainerClick();
                 }
 
+                var reloadAction = this.getAction('File/Reload');
+
+                this.collection.on('added',function(){
+                    console.log('reload');
+                    //thiz.runAction(reloadAction);
+                });
             }
         });
-        //tab.select();
-        var grid = utils.addWidget(logGridClass,gridArgs,null,tab,false,'logGridView');
-        grid.startup();
+
+        logManager.getStore(storeId).then(function(_store){
+
+            store = _store;
+
+            var gridArgs = {
+                ctx:ctx,
+                storeId:storeId,
+                attachDirect:true,
+                delegate:logManager,
+                collection: store.filter({
+                    show:true,
+                    host:device.info.host + ':' + device.info.port
+                }).sort([{property: 'time', descending: true}])
+            };
+
+            //tab.select();
+            var grid = utils.addWidget(logGridClass,gridArgs,null,tab,false,'logGridView');
+            grid.startup();
+        });
 
 
-        addSearch(grid);
+        return;
+
+
+
+        // default grid args
+
+
+
+        //addSearch(grid);
 
 
 
@@ -2716,8 +2739,6 @@ define([
         logTab.select();
 
     }
-
-
 
 
     function createCommandSettingsWidget(){
@@ -3019,15 +3040,13 @@ define([
                     });
                 }
 
-
                 this.grids = grids;
-
-
 
                 setTimeout(function(){
                     variablesTab.getFrame().showTitlebar(false);
                     variablesTab.getSplitter().pos(0.6);
                     variablesTab.select();
+                    logsTab.select();
                     onWidgetCreated(basicCommandsTab,condCommandsTab,variablesTab,logsTab,driver,device);
                 },10);
 
@@ -3293,13 +3312,6 @@ define([
         return {
         }
     }
-
-
-
-
-
-
-
 
 
     function openDriverSettings(driver,device){
@@ -3651,10 +3663,8 @@ define([
             });
         }
 
-        console.clear();
         var root = scope.getBlockById('root');
         //console.dir(root.getParent());
-
         return scope;
     }
 
@@ -3792,7 +3802,6 @@ define([
 
     if (ctx) {
 
-
         blockManager = ctx.getBlockManager();
         driverManager = ctx.getDriverManager();
         marantz  = driverManager.getItemById("235eb680-cb87-11e3-9c1a-0800200c9a66");
@@ -3802,7 +3811,41 @@ define([
         var driver = marantz.driver;
         var device = marantz.device;
 
-        openDriverSettings(driver,device);
+        var toolbar = ctx.mainView.getToolbar();
+
+
+
+        var docker = ctx.mainView.getDocker();
+        var parent  = window.driverTab;
+        if(parent){
+            docker.removePanel(parent);
+        }
+
+        var title = 'Marantz Instance';
+
+
+
+        var devinfo = null;
+        if(device){
+            devinfo  = ctx.getDeviceManager().toDeviceControlInfo(device);
+        }
+
+
+        parent = docker.addTab(null, {
+            title: (title || driver.name) + '' + (device ? ':' + device.name + ':' + devinfo.host + ':' : ''),
+            icon: 'fa-exchange'
+        });
+
+
+        window.driverTab = parent;
+
+
+        addLog(parent,driver,device);
+
+
+
+        //openDriverSettings(driver,device);
+
 
         return createCommandSettingsWidget();
     }

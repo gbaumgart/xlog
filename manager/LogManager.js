@@ -8,12 +8,14 @@ define([
         'xide/utils',
         "dojo/cookie",
         "dojo/json",
+        "dojo/Deferred",
         "xide/data/Memory",
+        "dstore/Trackable",
         'xlog/views/LogView',
         'xide/mixins/ReloadMixin',
         'xide/mixins/EventedMixin'
     ],
-    function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json, Memory, LogView, ReloadMixin, EventedMixin) {
+    function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json,Deferred,Memory,Trackable,LogView, ReloadMixin, EventedMixin) {
 
 
         var _ProgressHandler = declare([EventedMixin], {
@@ -91,6 +93,14 @@ define([
                 clients: null,
                 beanNamespace: 'logging',
                 views: null,
+                stores:{},
+                removeStore:function(id){
+                    var store = this.stores[id];
+                    if(store ){
+                        store.destroy && store.destroy();
+                        delete this.stores[id];
+                    }
+                },
                 getViewId: function (item) {
                     var data = {
                         info: item.info
@@ -119,16 +129,55 @@ define([
                     var _cookie = this.cookiePrefix + '_debug_settings';
                     cookie(_cookie, json.stringify(settings));
                 },
-                clear: function () {
-                    this.runDeferred(null, 'clear', ['unset']).then(function (data) {});
+                empty:function(which){
+                    this.clear(which);
 
+                    var store = this.getStore(which);
+
+                    if(store.then){
+                        store.then(function(_store){
+                            _store.setData([]);
+                        });
+                    }
+                },
+                clear: function (which) {
+                    return this.runDeferred(null, 'clear', [which || '']).then(function (data) {});
                 },
                 getViewTarget: function () {
                     var mainView = this.ctx.getApplication().mainView;
                     return mainView.getNewAlternateTarget();
                 },
-                getStore: function () {
-                    return this.store;
+
+                getStore: function (which) {
+
+                    if(!which) {
+                        return this.store;
+                    }
+
+                    var dfd = new Deferred();
+
+                    if(this.stores[which]){
+                        dfd.resolve(this.stores[which]);
+                        return dfd;
+                    }
+
+                    var thiz = this;
+
+
+                    this.runDeferred(null, 'ls', [which || '']).then(function(data){
+
+                        if (lang.isString(data)) {
+                            data = utils.getJson(data);
+                        }
+
+                        var store = thiz.initStore(data);
+                        thiz.stores[which] = store;
+                        dfd.resolve(store);
+
+                    });
+
+                    return dfd;
+
                 },
                 /***
                  * Common function that this instance is in a valid state
@@ -178,11 +227,13 @@ define([
                 initStore: function (data) {
 
                     var sdata = {
-                        identifier: "time",
-                        label: "level",
-                        items: [],
-                        sort: 'time'
-                    };
+                            identifier: "time",
+                            label: "level",
+                            items: [],
+                            sort: 'time'
+                        },
+                        store = null;
+
                     if (data.length == 0) {
                         data = [];
                     }
@@ -193,16 +244,19 @@ define([
                     }
                     try {
 
-                        this.store = new Memory({
+                        var storeClass = declare('LogStore',[Memory,Trackable],{});
+
+                        store = new storeClass({
                             idProperty: 'time',
                             data: sdata
                         });
+
 
                     } catch (e) {
                         console.error('log creation failed: ', e);
                     }
 
-                    return this.store;
+                    return store;
                 },
                 /////////////////////////////////////////////////////////////////////////////////////
                 //
@@ -395,6 +449,11 @@ define([
 
                     console.log('addLoggingMessage : ' + msg.time);
 
+                    var storeId = msg.data.logId;
+                    if(!storeId && msg.data && msg.data.device){
+                        var device = msg.data.device;
+                        storeId = device.host + '_' + device.port + '_' + device.protocol;
+                    }
 
                     var item = {
                         id: utils.createUUID(),
@@ -426,9 +485,11 @@ define([
                             item.message = item.message + ':' + msg.data.deviceMessage
                         }
                     }
+
                     if (!this.isValid()) {
                         this.initStore([]);
                     }
+
                     try {
 
                         var _isTerminated = item.terminatorMessage != null && !item._isTerminated;
@@ -441,27 +502,39 @@ define([
                             //return '<span class=\"fa-spinner fa-spin\" style=\"margin-right: 4px\"></span>' + message;
                         }
 
-                        this.getStore().put(item);
+                        var store = this.getStore(storeId);
+                        if(!store){
+                            return;
+                        }
+                        if(store.then){
+                            store.then(function(_store){
+                                item = _store.putSync(item);
+                            });
+                        }else{
+                            item = store.putSync(item);
+                        }
+
                     } catch (e) {
                         console.error('adding log message to store failed ' + e);
                     }
                     try {
-                        this.updateViews(this.getStore(), msg);
+                        //this.updateViews(this.getStore(), msg);
                     } catch (e) {
                         console.error('', e);
                     }
                 },
                 onServerLogMessage: function (evt) {
 
+
+                    console.log('on server log message ',evt);
+
                     if(evt.data && evt.data.time){
                         evt.time = evt.data.time;
                     }
+
                     this.addLoggingMessage(evt);
 
-                    this.updateViews();
-
-
-
+                    //this.updateViews();
                     if(evt.write==true){
                         this.publish(types.EVENTS.ON_CLIENT_LOG_MESSAGE,{
                             message:evt.message,
@@ -490,7 +563,11 @@ define([
                         types.EVENTS.ON_MAIN_VIEW_READY,
                         types.EVENTS.ON_SERVER_LOG_MESSAGE
                     ]);
+
                     this.views = [];
+
+                    this.stores = {};
+
                 },
                 /////////////////////////////////////////////////////////////////////////////////////
                 //
@@ -537,11 +614,11 @@ define([
                  * @param errorCB{function}
                  * @returns {*}
                  */
-                ls: function (readyCB, errorCB) {
+                ls: function (readyCB,which,cb) {
 
                     var thiz = this;
 
-                    var _cb = function (data) {
+                    var _cb = cb || function (data) {
 
 
                         console.warn('logging manager : ls:: got data',data);
@@ -551,13 +628,13 @@ define([
                         if (lang.isString(data)) {
                             data = utils.getJson(data);
                         }
-                        thiz.initStore(data);
+                        thiz.store = thiz.initStore(data);
                         if (readyCB) {
                             readyCB(data);
                         }
 
                     };
-                    return this.callMethodEx(null, 'ls', ['unset'], _cb, true);
+                    return this.callMethodEx(null, 'ls', [which || ''], _cb, true);
                 }
             });
     });
