@@ -447,7 +447,7 @@ define([
 
 
 
-                    console.log('addLoggingMessage : ' + msg.time);
+                    //console.log('addLoggingMessage : ' + msg.time);
 
                     var storeId = msg.data.logId;
                     if(!storeId && msg.data && msg.data.device){
@@ -526,7 +526,7 @@ define([
                 onServerLogMessage: function (evt) {
 
 
-                    console.log('on server log message ',evt);
+                    //console.log('on server log message ',evt);
 
                     if(evt.data && evt.data.time){
                         evt.time = evt.data.time;
