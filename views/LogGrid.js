@@ -228,13 +228,9 @@ define([
             this.inherited(arguments);
 
             this.set('collection',this.collection.sort(this.getDefaultSort()));
-
-
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
-
             this.addActions(_defaultActions);
-            this.onContainerClick();
             this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
         }
     });
