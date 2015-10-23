@@ -92,9 +92,10 @@ define([
             ACTION.LAYOUT,
             ACTION.COLUMNS,
             ACTION.SELECTION,
-            ACTION.PREVIEW,
+            //ACTION.PREVIEW,
             ACTION.SAVE,
-            ACTION.SEARCH
+            ACTION.SEARCH,
+            ACTION.TOOLBAR
         ],
         runAction:function(action){
 
@@ -225,13 +226,21 @@ define([
         },
         startup:function(){
 
+
+            if(this._started){
+                return;
+            }
             this.inherited(arguments);
 
             this.set('collection',this.collection.sort(this.getDefaultSort()));
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
+
             this.addActions(_defaultActions);
             this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
+            //this.showToolbar(true);
+            this.getToolbar().clear();
+            this.getToolbar().setActionStore(this.getActionStore());
         }
     });
 });
