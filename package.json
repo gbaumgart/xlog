@@ -1,6 +1,6 @@
 {
     "name": "xlog",
-    "version": "0.1.1-dev",
+    "version": "1.0.0-dev",
     "dependencies": {
     },
     "devDependencies": {
@@ -18,5 +18,5 @@
         }
     ],
     "bugs": "https://github.com/ibm-js/delite/issues",
-    "dojoBuild": "app.profile.js"
+    "dojoBuild": "layer.profile.js"
 }

@@ -1,15 +1,12 @@
-/**
- * This is a new Dojo 1.7 style build profile. Look at util/build/buildControlDefault.js if you want to explore the
- * default Dojo build profile options.
- */
+
+
 // This function is used to determine whether or not a resource should be tagged as copy-only. See the resourceTags
 // property below for more information.
 function copyOnly(mid) {
     return mid in {
         // There are no modules right now in dojo boilerplate that are copy-only. If you have some, though, just add
         // them here like this:
-        'xide/resources': 1,
-        'cssMobile': 1
+
     };
 }
 
@@ -59,37 +56,26 @@ var profile = {
         // This is the main loader module. It is a little special because it is treated like an AMD module even though
         // it is actually just plain JavaScript. There is some extra magic in the build system specifically for this
         // module ID.
-        'dojo/dojo': {
+        'xlog/xlog': {
             // In addition to the loader (dojo/dojo) and the loader configuration file (app/run), we’re also including
             // the main application (app/main) and the dojo/i18n and dojo/domReady modules because they are one of the
             // conditional dependencies in app/main (the other being app/Dialog) but we don’t want to have to make
             // extra HTTP requests for such tiny files.
-            include: [
-                'dojo/dojo',
-                'dojo/i18n',
-                'dojo/domReady',
-                'xide/Imports/DojoRPCImports',
-                'xide/Imports/DojoDomUtilImports',
-                'xide/Imports/DijitImports', //  Extra - DIJIT - IMPORTS
-                'xide/Imports/DojoxImports', //  Extra - Dojox - IMPORTS
-                'xide/XBoxCommons',
-                'xide/Managers',
-                'xide/Widgets',
-                'xide/GUIALL',
-                'xide/Views',
-                'xide/main',
-                'xide/run'],
-
             // By default, the build system will try to include dojo/main in the built dojo/dojo layer, which adds a
             // bunch of stuff we don’t want or need. We want the initial script load to be as small and quick as
             // possible, so we configure it as a custom, bootable base.
+            include: [
+                'xlog/main',
+                'xlog',
+                "xlog/manager/LogManager",
+                "xlog/views/LogGrid",
+                "xlog/views/LogView",
+                "xlog/widgets/FilterWidget",
+                "xlog/widgets/RowDetailEditor"
+            ],
             boot: false,
-            customBase: true
+            customBase: false
         }
-        // In the demo application, we conditionally require app/Dialog on the client-side, so we’re building a
-        // separate layer containing just that client-side code. (Practically speaking, you’d probably just want
-        // to roll everything into a single layer, but I wanted to make sure to illustrate multi-layer builds.)
-
     },
 
     // Providing hints to the build system allows code to be conditionally removed on a more granular level than
@@ -100,7 +86,6 @@ var profile = {
         // The trace & log APIs are used for debugging the loader, so we don’t need them in the build
         'dojo-trace-api':0,
         'dojo-log-api':0,
-        'dojo-bidi':0,
         // This causes normally private loader data to be exposed for debugging, so we don’t need that either
         'dojo-publish-privates':0,
         // We’re fully async, so get rid of the legacy loader
@@ -109,10 +94,7 @@ var profile = {
         'dojo-xhr-factory':0,
         // We aren’t loading tests in production
         'dojo-test-sniff':0,
-        'dojo-undef-api':1
-
-
-
+        'xlog':1
     },
 
     // Resource tags are functions that provide hints to the compiler about a given file. The first argument is the
@@ -120,6 +102,12 @@ var profile = {
     resourceTags: {
         // Files that contain test code.
         test: function (filename, mid) {
+            if(filename){
+                if(filename.indexOf('tests') !==-1 ||
+                    filename.indexOf('Server') !==-1
+                )
+                return true;
+            }
             return false;
         },
 
@@ -136,7 +124,7 @@ var profile = {
         // Files that should not be copied when the “mini” compiler flag is set to true.
         miniExclude: function (filename, mid) {
             return mid in {
-                'xapp/profile': 1
+                'XPLUGIN/profile': 1
             };
         }
     }
