@@ -119,6 +119,10 @@ define([
                 show:true
             }
         },
+        refresh:function(){
+            console.log('refresh log');
+            return this.inherited(arguments);
+        },
         postMixInProperties: function () {
             this.columns = this.getColumns();
             return this.inherited(arguments);
@@ -237,9 +241,14 @@ define([
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
 
             this.addActions(_defaultActions);
-            this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
+            //this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
             //this.showToolbar(true);
             this.getToolbar().clear();
+            this._on('selectionChanged',function(e){
+
+                console.log('selection changed');
+
+            });
             this.getToolbar().setActionStore(this.getActionStore());
         }
     });
