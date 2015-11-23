@@ -103,10 +103,9 @@ var profile = {
         // Files that contain test code.
         test: function (filename, mid) {
             if(filename){
-                if(filename.indexOf('tests') !==-1 ||
-                    filename.indexOf('Server') !==-1
-                )
-                return true;
+                if(filename.indexOf('tests') !==-1) {
+                    return true;
+                }
             }
             return false;
         },

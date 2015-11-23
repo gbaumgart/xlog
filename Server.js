@@ -19,13 +19,13 @@ define([
          * Standard constructor for all subclassing bindings
          * @param {array} arguments
          */
-        constructor: function (arguments) {
+        constructor: function (args) {
 
             //simple mixin of constructor arguments
             for (var prop in arguments) {
                 if (arguments.hasOwnProperty(prop)) {
 
-                    this[prop] = arguments[prop];
+                    this[prop] = args[prop];
                 }
             }
         },
@@ -33,9 +33,9 @@ define([
 
             var logger = new (winston.Logger)({
                 transports: [
-                    /*new (winston.transports.Console)(),*/
-                    new (winston.transports.File)(options)/*,
-                    new (winston.transports.FileRotateDate)({
+                    new (winston.transports.File)(options)
+                    /*,
+                        new (winston.transports.FileRotateDate)({
                     })*/
                 ]
             });
