@@ -449,10 +449,12 @@ define([
 
                     //console.log('addLoggingMessage : ' + msg.time);
 
-                    var storeId = msg.data.logId;
-                    if(!storeId && msg.data && msg.data.device){
-                        var device = msg.data.device;
-                        storeId = device.host + '_' + device.port + '_' + device.protocol;
+                    if(msg && msg.data) {
+                        var storeId = msg.data.logId;
+                        if (!storeId && msg.data && msg.data.device) {
+                            var device = msg.data.device;
+                            storeId = device.host + '_' + device.port + '_' + device.protocol;
+                        }
                     }
 
                     var item = {
