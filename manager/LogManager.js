@@ -321,7 +321,7 @@ define([
 
                     item._isInProgress = true;
 
-                    console.log('pending event ' + message + ' = ' + terminatorMessage + ' id',item);
+                    //console.log('pending event ' + message + ' = ' + terminatorMessage + ' id',item);
 
                     function _onEnd(evt) {
 
