@@ -325,8 +325,6 @@ define([
 
                     function _onEnd(evt) {
 
-                        console.log('_on end', arguments);
-
                         if (!item._isTerminated && _handle) {
 
                             item.message = item.oriMessage + ' : Done';
