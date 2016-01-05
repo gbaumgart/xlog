@@ -2,10 +2,10 @@ define([
         "dojo/_base/declare",
         'dojo/dom-class',
         "xide/widgets/TemplatedWidgetBase",
-        'dijit/MenuItem',
+        //'dijit/MenuItem',
         'dojo/aspect'
     ],
-    function (declare, domClass, TemplatedWidgetBase, MenuItem, aspect) {
+    function (declare, domClass, TemplatedWidgetBase,aspect) {
         return declare("xlog.widgets.FilterWidget", [TemplatedWidgetBase], {
             wButton: null,
             wThumb: null,
