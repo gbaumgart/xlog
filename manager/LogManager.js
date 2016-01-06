@@ -3,7 +3,7 @@ define([
         "dojo/_base/lang",
         "xide/manager/ServerActionBase",
         "xide/manager/BeanManager",
-        'dojox/encoding/digests/MD5',
+        'xide/encoding/MD5',
         'xide/types',
         'xide/utils',
         "dojo/cookie",
