@@ -1,24 +1,25 @@
 define([
-        "dojo/_base/declare",
-        "dojo/_base/lang",
-        "dojo/dom-class",
-        'xide/views/BeanView',
-        "dgrid/OnDemandGrid",
-        "dgrid/Selection",
-        "dgrid/Keyboard",
-        "dgrid/Editor",
-        "xide/views/GridView",
-        "xgrid/ColumnHider",
-        "dgrid/extensions/ColumnResizer",
-        "dgrid/extensions/ColumnReorder",
-        'xide/types',
-        'xide/utils',
-        'xide/widgets/FlagsWidget',
-        'xlog/widgets/RowDetailEditor',
-        'xide/bean/Action',
-        'xide/mixins/EventedMixin'
-    ],
-    function (declare, lang, domClass, BeanView, OnDemandGrid, Selection, Keyboard, Editor, GridView, ColumnHider, ColumnResizer, ColumnReorder, types, utils, FlagsWidget, RowDetailEditor,Action,EventedMixin) {
+    'dcl/dcl',
+    "dojo/_base/declare",
+    "dojo/_base/lang",
+    "dojo/dom-class",
+    'xide/views/BeanView',
+    "dgrid/OnDemandGrid",
+    "dgrid/Selection",
+    "dgrid/Keyboard",
+    "dgrid/Editor",
+    "xide/views/GridView",
+    "xgrid/ColumnHider",
+    "dgrid/extensions/ColumnResizer",
+    "dgrid/extensions/ColumnReorder",
+    'xide/types',
+    'xide/utils',
+    'xide/widgets/FlagsWidget',
+    'xlog/widgets/RowDetailEditor',
+    'xide/bean/Action',
+    'xide/mixins/EventedMixin',
+    'xide/layout/Container'
+],function (dcl,declare, lang, domClass, BeanView, OnDemandGrid, Selection, Keyboard, Editor, GridView, ColumnHider, ColumnResizer, ColumnReorder, types, utils, FlagsWidget, RowDetailEditor,Action,EventedMixin,Container) {
 
 
         var  ProgressHandler = declare(null,[EventedMixin],{
@@ -94,7 +95,8 @@ define([
             }
         });
 
-        var logview = declare('xlog/views/LogView', [BeanView, GridView],{
+        var logview = dcl(Container,{
+                declaredClass:'xlog/views/LogView',
                 delegate: null,
                 store: null,
                 flagWidget: null,
