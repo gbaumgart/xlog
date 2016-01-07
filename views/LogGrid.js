@@ -229,27 +229,20 @@ define([
             return columns;
         },
         startup:function(){
-
-
-            if(this._started){
-                return;
-            }
-            this.inherited(arguments);
-
             this.set('collection',this.collection.sort(this.getDefaultSort()));
+
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
 
             this.addActions(_defaultActions);
             //this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
             //this.showToolbar(true);
-            this.getToolbar().clear();
-            this._on('selectionChanged',function(e){
-
-                console.log('selection changed');
-
-            });
-            this.getToolbar().setActionStore(this.getActionStore());
+            var toolbar = this.getToolbar();
+            var thiz  = this;
+            if(toolbar) {
+                toolbar.clear && toolbar.clear();
+                toolbar.setActionStore(thiz.getActionStore(),thiz);
+            }
         }
     });
 });
