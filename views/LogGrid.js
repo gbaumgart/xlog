@@ -19,8 +19,6 @@ define([
              OnDemandGrid, EventedMixin,utils,DefaultActions) {
 
 
-
-
     /**
      * @class module:xgrid/views/LogGrid
      */
