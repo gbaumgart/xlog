@@ -4,12 +4,10 @@ define([
     'xide/types',
     'xide/utils',
     'xide/factory',
-    "dojo/node!winston",
-    "dojo/node!winston-filerotatedate",
-    "dojo/node!winston-loggly"
+    "dojo/node!winston"
+
 ], function (declare, lang, types, utils, factory, winston) {
     return declare("xlog.Server", null, {
-
         fileLogger: null,
         loggly: null,
         delegate: null,
