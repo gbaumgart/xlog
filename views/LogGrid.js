@@ -117,16 +117,11 @@ define([
                 show:true
             }
         },
-        refresh:function(){
-            console.log('refresh log');
-            return this.inherited(arguments);
-        },
         postMixInProperties: function () {
             this.columns = this.getColumns();
             return this.inherited(arguments);
         },
         formatDateSimple: function (data, format) {
-
             var momentUnix = moment.unix(data);
             return momentUnix.format("MMMM Do, h:mm:ss a");
         },
@@ -227,7 +222,12 @@ define([
             return columns;
         },
         startup:function(){
-            this.set('collection',this.collection.sort(this.getDefaultSort()));
+
+
+            this.inherited(arguments);
+
+
+            //this.set('collection',this.collection.sort(this.getDefaultSort()));
 
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
@@ -237,6 +237,7 @@ define([
             //this.showToolbar(true);
             var toolbar = this.getToolbar();
             var thiz  = this;
+            thiz.set('collection',thiz.collection.filter(thiz.getRootFilter()).sort(thiz.getDefaultSort()));
             if(toolbar) {
                 toolbar.clear && toolbar.clear();
                 toolbar.setActionStore(thiz.getActionStore(),thiz);
