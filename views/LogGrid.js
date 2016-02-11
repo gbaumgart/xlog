@@ -12,11 +12,12 @@ define([
     'dgrid/OnDemandGrid',
     'xide/mixins/EventedMixin',
     'xide/utils',
-    'xide/action/DefaultActions'
+    'xide/action/DefaultActions',
+    "xide/widgets/_Widget"
 
 ], function (declare,types,
              ListRenderer, Grid, Defaults, Focus,KeyboardNavigation,Search,Layout,
-             OnDemandGrid, EventedMixin,utils,DefaultActions) {
+             OnDemandGrid, EventedMixin,utils,DefaultActions,_Widget) {
 
 
     /**
@@ -40,6 +41,9 @@ define([
             },
             SEARCH:{
                 CLASS:Search
+            },
+            WIDGET:{
+                CLASS:_Widget
             }
 
         },
@@ -242,6 +246,9 @@ define([
                 toolbar.clear && toolbar.clear();
                 toolbar.setActionStore(thiz.getActionStore(),thiz);
             }
+            this.add(toolbar,null,false);
+            toolbar.resize();
+            this.resize();
         }
     });
 });
