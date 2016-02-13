@@ -23,7 +23,7 @@ define([
     /**
      * @class module:xgrid/views/LogGrid
      */
-    var GridClass = Grid.createGridClass('log',
+    var GridClass = Grid.createGridClass('xlog.views.LogGrid',
         {
             options: utils.clone(types.DEFAULT_GRID_OPTIONS)
         },
@@ -35,7 +35,7 @@ define([
             PAGINATION: types.GRID_FEATURES.PAGINATION,
             ACTIONS: types.GRID_FEATURES.ACTIONS,
             CONTEXT_MENU: types.GRID_FEATURES.CONTEXT_MENU,
-            TOOLBAR: types.GRID_FEATURES.TOOLBAR,
+            //TOOLBAR: types.GRID_FEATURES.TOOLBAR,
             FILTER:{
                 CLASS:KeyboardNavigation
             },
@@ -238,7 +238,8 @@ define([
 
             this.addActions(_defaultActions);
             //this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
-            //this.showToolbar(true);
+            //this.showToolbar(true);/
+            /*
             var toolbar = this.getToolbar();
             var thiz  = this;
             thiz.set('collection',thiz.collection.filter(thiz.getRootFilter()).sort(thiz.getDefaultSort()));
@@ -248,6 +249,7 @@ define([
             }
             this.add(toolbar,null,false);
             toolbar.resize();
+            */
             this.resize();
         }
     });
