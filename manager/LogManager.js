@@ -17,6 +17,7 @@ define([
     ],
     function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json,Deferred,Memory,Trackable,LogView, ReloadMixin, EventedMixin) {
 
+        var debug = false;
 
         var _ProgressHandler = declare([EventedMixin], {
             bytesLoaded: null,
@@ -189,7 +190,7 @@ define([
                 _buildLoggingMessage: function (msg) {
 
                     if (!msg.time){
-                        console.error('logging message has no time!',msg);
+                        debug && console.error('logging message has no time!',msg);
                     }
                     var item = {
                         id: utils.createUUID(),
@@ -621,7 +622,7 @@ define([
                     var _cb = cb || function (data) {
 
 
-                        console.warn('logging manager : ls:: got data',data);
+                        debug && console.warn('logging manager : ls:: got data',data);
 
                         //keep a copy
                         thiz.rawData = data;
