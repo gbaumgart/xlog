@@ -11,13 +11,15 @@ define([
         "dojo/Deferred",
         "xide/data/Memory",
         "dstore/Trackable",
-        'xide/mixins/EventedMixin',
-        'xdojo/has!host-browser?xlog/views/LogView'
+        'xide/mixins/EventedMixin'
+        //'xdojo/has!host-browser?xlog/views/LogGrid'
 ],function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json,Deferred,
           Memory,Trackable,
-          EventedMixin,LogView) {
+          EventedMixin) {
 
     var debug = false;
+    var LogView = false;
+
 
     var _ProgressHandler = declare([EventedMixin], {
         bytesLoaded: null,

@@ -68,10 +68,7 @@ var profile = {
                 'xlog/main',
                 'xlog',
                 "xlog/manager/LogManager",
-                "xlog/views/LogGrid",
-                "xlog/views/LogView",
-                "xlog/widgets/FilterWidget",
-                "xlog/widgets/RowDetailEditor"
+                "xlog/views/LogGrid"
             ],
             boot: false,
             customBase: false
