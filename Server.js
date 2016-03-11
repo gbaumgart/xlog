@@ -29,6 +29,9 @@ define([
         },
         createLogger:function(options){
 
+
+            //console.error('create logger',options);
+
             var logger = new (winston.Logger)({
                 transports: [
                     new (winston.transports.File)(options)
@@ -78,6 +81,7 @@ define([
 
             if (options.fileLogger) {
 
+                //console.error('---',options.fileLogger);
                 this.fileLogger = winston.add(winston.transports.File, options.fileLogger);
 
                 if (this.publishLog) {
