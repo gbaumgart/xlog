@@ -1,26 +1,23 @@
 define([
-        "xdojo/declare",
-        "dojo/_base/lang",
-        "xide/manager/ServerActionBase",
-        "xide/manager/BeanManager",
-        'xide/encoding/MD5',
-        'xide/types',
-        'xide/utils',
-        "dojo/cookie",
-        "dojo/json",
-        "dojo/Deferred",
-        "xide/data/Memory",
-        "dstore/Trackable",
-        'xide/mixins/EventedMixin'
-        //'xdojo/has!host-browser?xlog/views/LogGrid'
-],function (declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json,Deferred,
-          Memory,Trackable,
+    'dcl/dcl',
+    "xdojo/declare",
+    "dojo/_base/lang",
+    "xide/manager/ServerActionBase",
+    "xide/manager/BeanManager",
+    'xide/encoding/MD5',
+    'xide/types',
+    'xide/utils',
+    "dojo/cookie",
+    "dojo/json",
+    "dojo/Deferred",
+    "xide/data/Memory",
+    "dstore/Trackable",
+    'xide/mixins/EventedMixin'
+],function (dcl,declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json,Deferred,Memory,Trackable,
           EventedMixin) {
 
     var debug = false;
     var LogView = false;
-
-
     var _ProgressHandler = declare([EventedMixin], {
         bytesLoaded: null,
         percentValue: null,
@@ -84,9 +81,8 @@ define([
             }
         }
     });
-
-    return declare("xide.manager.LogManager", [ServerActionBase, BeanManager],{
-
+    return dcl([ServerActionBase, BeanManager],{
+        declaredClass:"xcf.manager.LogManager",
             serviceClass: 'XIDE_Log_Service',
             cookiePrefix: 'logging',
             singleton: true,
@@ -556,19 +552,13 @@ define([
             //
             /////////////////////////////////////////////////////////////////////////////////////
             init: function () {
-
-                this.inherited(arguments);
-
                 this.subscribe([
                     types.EVENTS.ON_MAIN_MENU_OPEN,
                     types.EVENTS.ON_MAIN_VIEW_READY,
                     types.EVENTS.ON_SERVER_LOG_MESSAGE
                 ]);
-
                 this.views = [];
-
                 this.stores = {};
-
             },
             /////////////////////////////////////////////////////////////////////////////////////
             //
