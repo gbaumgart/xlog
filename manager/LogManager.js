@@ -442,7 +442,7 @@ define([
 
 
 
-                //console.log('addLoggingMessage : ' + msg.time);
+                console.log('addLoggingMessage : ' + msg.time);
 
                 if(msg && msg.data) {
                     var storeId = msg.data.logId;
@@ -521,9 +521,7 @@ define([
                 }
             },
             onServerLogMessage: function (evt) {
-
-
-                //console.log('on server log message ',evt);
+                console.log('on server log message ',evt);
 
                 if(evt.data && evt.data.time){
                     evt.time = evt.data.time;
@@ -552,6 +550,7 @@ define([
             //
             /////////////////////////////////////////////////////////////////////////////////////
             init: function () {
+
                 this.subscribe([
                     types.EVENTS.ON_MAIN_MENU_OPEN,
                     types.EVENTS.ON_MAIN_VIEW_READY,
@@ -559,6 +558,7 @@ define([
                 ]);
                 this.views = [];
                 this.stores = {};
+
             },
             /////////////////////////////////////////////////////////////////////////////////////
             //
@@ -582,16 +582,6 @@ define([
             },
             onMainMenuOpen: function (evt) {
 
-                var menu = evt['menu'];
-                //add 'Services' to MainMenu->Views
-                if (!menu['logMenuItem'] &&
-                    menu['name'] == types.MAIN_MENU_KEYS.VIEWS) {
-                    menu['logMenuItem'] = new dijit.MenuItem({
-                        label: "Log",
-                        onClick: lang.hitch(this, 'openLogView')
-                    });
-                    menu.addChild(menu['logMenuItem']);
-                }
             },
             /////////////////////////////////////////////////////////////////////////////////////
             //
