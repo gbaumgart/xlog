@@ -150,23 +150,16 @@ define([
                 if(!which) {
                     return this.store;
                 }
-
                 var dfd = new Deferred();
-
                 if(this.stores[which]){
                     dfd.resolve(this.stores[which]);
                     return dfd;
                 }
-
                 var thiz = this;
-
-
                 this.runDeferred(null, 'ls', [which || '']).then(function(data){
-
-                    if (lang.isString(data)) {
+                    if (_.isString(data)) {
                         data = utils.getJson(data);
                     }
-
                     var store = thiz.initStore(data);
                     thiz.stores[which] = store;
                     dfd.resolve(store);
@@ -241,11 +234,12 @@ define([
                 }
                 try {
 
-                    var storeClass = declare('LogStore',[Memory,Trackable],{});
-
+                    var storeClass = declare('LogStore',[Memory],{});
+                    console.log('-init store');
                     store = new storeClass({
                         idProperty: 'time',
-                        data: sdata
+                        data: sdata,
+                        id:utils.createUUID()
                     });
 
 
@@ -484,7 +478,7 @@ define([
                 }
 
                 if (!this.isValid()) {
-                    this.initStore([]);
+                    //this.initStore([]);
                 }
 
                 try {
@@ -505,10 +499,21 @@ define([
                     }
                     if(store.then){
                         store.then(function(_store){
+                            store = _store;
                             item = _store.putSync(item);
+                            _store._emit('added',{
+                                item:item,
+                                store:store
+                            });
                         });
+
+
                     }else{
                         item = store.putSync(item);
+                        store._emit('added',{
+                            item:item,
+                            store:store
+                        })
                     }
 
                 } catch (e) {

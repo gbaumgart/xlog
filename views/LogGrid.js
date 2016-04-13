@@ -225,18 +225,28 @@ define([
             }
             return columns;
         },
+        set:function(what,value){
+
+            //console.log(what,value);
+            var thiz = this;
+            if(what=='collection'){
+                thiz.addHandle('added',value._on('added',function(evt){
+                    thiz.refresh();
+                }));
+            }
+            return this.inherited(arguments);
+        },
         startup:function(){
 
-
             this.inherited(arguments);
-
-
             //this.set('collection',this.collection.sort(this.getDefaultSort()));
 
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
 
             this.addActions(_defaultActions);
+            var thiz=this;
+
             //this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
             //this.showToolbar(true);/
             /*
