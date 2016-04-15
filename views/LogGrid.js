@@ -13,11 +13,11 @@ define([
     'xide/mixins/EventedMixin',
     'xide/utils',
     'xide/action/DefaultActions',
-    "xide/widgets/_Widget"
-
+    "xide/widgets/_Widget",
+    'xlang/i18'
 ], function (declare,types,
              ListRenderer, Grid, Defaults, Focus,KeyboardNavigation,Search,Layout,
-             OnDemandGrid, EventedMixin,utils,DefaultActions,_Widget) {
+             OnDemandGrid, EventedMixin,utils,DefaultActions,_Widget,i18) {
 
 
     /**
@@ -206,7 +206,16 @@ define([
                     },
                     formatter: function (time,object) {
                         if(!object.timeStr){
-                            object.timeStr =thiz.formatDateSimple(object.time / 1000);
+
+                            //object.timeStr =thiz.formatDateSimple(object.time / 1000);
+                            if(time ===''){
+                                return time;
+                            }
+                            var dateFormat = i18.translations.dateFormat;
+                            if(dateFormat){
+                                var res = i18.formatDate(time);
+                                object.timeStr = res.replace('ms','');
+                            }
                         }
                         return object.timeStr;
                     }
