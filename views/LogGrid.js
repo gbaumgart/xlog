@@ -12,7 +12,7 @@ define([
     'dgrid/OnDemandGrid',
     'xide/mixins/EventedMixin',
     'xide/utils',
-    'xide/action/DefaultActions',
+    'xaction/DefaultActions',
     "xide/widgets/_Widget",
     'xlang/i18'
 ], function (declare,types,
