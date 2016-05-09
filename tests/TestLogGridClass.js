@@ -2239,7 +2239,7 @@ define([
                     this._renderedCollection = filtered;
                     this.refresh();
                 }
-            },
+            }
         });
 
         return GridSearch;
