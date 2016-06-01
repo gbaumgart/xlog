@@ -1,13 +1,11 @@
 define([
-    "dojo/_base/declare",
-    "dojo/_base/lang",
+    "dcl/dcl",
     'xide/types',
-    'xide/utils',
     'xide/factory',
     "dojo/node!winston"
-
-], function (declare, lang, types, utils, factory, winston) {
-    return declare("xlog.Server", null, {
+], function (dcl, types, factory, winston) {
+    return dcl(null, {
+        declaredClass:"xlog.Server",
         fileLogger: null,
         loggly: null,
         delegate: null,
@@ -28,26 +26,16 @@ define([
             }
         },
         createLogger:function(options){
-
-
-            //console.error('create logger',options);
-
             var logger = new (winston.Logger)({
                 transports: [
                     new (winston.transports.File)(options)
-                    /*,
-                        new (winston.transports.FileRotateDate)({
-                    })*/
                 ]
             });
 
             if (this.publishLog) {
 
                 logger.on('logging', function (transport, level, msg, meta) {
-
-
                     meta.logId = options.filename;
-
                     var args = {
                         level: level,
                         message: msg,
@@ -55,46 +43,24 @@ define([
                         time: new Date().getTime()
 
                     };
-                    //console.log('publish server log message');
                     factory.publish(types.EVENTS.ON_SERVER_LOG_MESSAGE,args);
                 });
             }
-            //this.loggers[options.fileName] = logger;
-            /*
-
-            var logger = winston.add(winston.transports.File, options);
-
-            this.loggers[options.fileName] = logger;
-
-
-            */
-
             return logger;
         },
         start: function (options) {
-
             this.loggers = {};
-
             this.options = options;
-
-
-
             if (options.fileLogger) {
-
-                //console.error('---',options.fileLogger);
                 this.fileLogger = winston.add(winston.transports.File, options.fileLogger);
-
                 if (this.publishLog) {
-
                     this.fileLogger.on('logging', function (transport, level, msg, meta) {
-
                         var args = {
                             level: level,
                             message: msg,
                             data: meta,
                             time: new Date().getTime()
                         };
-                        //console.log('publish server log message');
                         factory.publish(types.EVENTS.ON_SERVER_LOG_MESSAGE,args);
                     });
                 }
