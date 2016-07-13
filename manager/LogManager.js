@@ -436,7 +436,7 @@ define([
 
 
 
-                console.log('addLoggingMessage : ' + msg.time);
+                debug && console.log('addLoggingMessage : ' + msg.time);
 
                 if(msg && msg.data) {
                     var storeId = msg.data.logId;
@@ -526,8 +526,7 @@ define([
                 }
             },
             onServerLogMessage: function (evt) {
-                console.log('on server log message ',evt);
-
+                debug && console.log('on server log message ',evt);
                 if(evt.data && evt.data.time){
                     evt.time = evt.data.time;
                 }

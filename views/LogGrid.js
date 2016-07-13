@@ -35,7 +35,7 @@ define([
             PAGINATION: types.GRID_FEATURES.PAGINATION,
             ACTIONS: types.GRID_FEATURES.ACTIONS,
             CONTEXT_MENU: types.GRID_FEATURES.CONTEXT_MENU,
-            //TOOLBAR: types.GRID_FEATURES.TOOLBAR,
+            TOOLBAR: types.GRID_FEATURES.TOOLBAR,
             FILTER:{
                 CLASS:KeyboardNavigation
             },
@@ -245,19 +245,50 @@ define([
             }
             return this.inherited(arguments);
         },
+        _onMessage:function (evt) {
+
+            //console.log('message '+this._showing,evt);
+
+            if(!this._showing){
+                this._dirty = true;
+            }else{
+                if(this.isMyLog && this.isMyLog(evt)===false){
+                    return;
+                }
+                this.refresh();
+            }
+        },
+        onShow:function(){
+
+            if(this._dirty){
+                this.refresh();
+                this._dirty = false;
+            }
+            return this.inherited(arguments);
+        },
         startup:function(){
 
-            this.inherited(arguments);
             //this.set('collection',this.collection.sort(this.getDefaultSort()));
 
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
 
             this.addActions(_defaultActions);
+
+
+            this.inherited(arguments);
+
+            //console.error('log grid start');
+
             var thiz=this;
 
-            //this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this.refresh);
-            //this.showToolbar(true);/
+            this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this._onMessage);
+            //var toolbar = this.getToolbar();
+
+            /*
+            this.showToolbar(true);
+            this.getToolbar().setActionEmitter(null);
+            this.getToolbar().setActionEmitter(this);*/
             /*
             var toolbar = this.getToolbar();
             var thiz  = this;
@@ -269,6 +300,7 @@ define([
             this.add(toolbar,null,false);
             toolbar.resize();
             */
+
             this.resize();
         }
     });
