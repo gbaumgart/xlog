@@ -73,7 +73,6 @@ define([
     return declare("xlog.views.LogView", GridClass, {
         rowsPerPage: 30,
         minRowsPerPage: 100,
-
         /**
          * Stubs
          */
@@ -124,10 +123,6 @@ define([
         postMixInProperties: function () {
             this.columns = this.getColumns();
             return this.inherited(arguments);
-        },
-        formatDateSimple: function (data, format) {
-            var momentUnix = moment.unix(data);
-            return momentUnix.format("MMMM Do, h:mm:ss a");
         },
         getDefaultSort:function(){
             return [{property: 'time', descending: true}];
@@ -235,8 +230,6 @@ define([
             return columns;
         },
         set:function(what,value){
-
-            //console.log(what,value);
             var thiz = this;
             if(what=='collection'){
                 thiz.addHandle('added',value._on('added',function(evt){
@@ -246,9 +239,6 @@ define([
             return this.inherited(arguments);
         },
         _onMessage:function (evt) {
-
-            //console.log('message '+this._showing,evt);
-
             if(!this._showing){
                 this._dirty = true;
             }else{
@@ -267,40 +257,12 @@ define([
             return this.inherited(arguments);
         },
         startup:function(){
-
-            //this.set('collection',this.collection.sort(this.getDefaultSort()));
-
             var permissions = this.permissions,
                 _defaultActions = DefaultActions.getDefaultActions(permissions, this);
 
             this.addActions(_defaultActions);
-
-
             this.inherited(arguments);
-
-            //console.error('log grid start');
-
-            var thiz=this;
-
             this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this._onMessage);
-            //var toolbar = this.getToolbar();
-
-            /*
-            this.showToolbar(true);
-            this.getToolbar().setActionEmitter(null);
-            this.getToolbar().setActionEmitter(this);*/
-            /*
-            var toolbar = this.getToolbar();
-            var thiz  = this;
-            thiz.set('collection',thiz.collection.filter(thiz.getRootFilter()).sort(thiz.getDefaultSort()));
-            if(toolbar) {
-                toolbar.clear && toolbar.clear();
-                toolbar.setActionStore(thiz.getActionStore(),thiz);
-            }
-            this.add(toolbar,null,false);
-            toolbar.resize();
-            */
-
             this.resize();
         }
     });

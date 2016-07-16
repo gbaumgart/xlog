@@ -1,7 +1,6 @@
 define([
     'dcl/dcl',
     "xdojo/declare",
-    "dojo/_base/lang",
     "xide/manager/ServerActionBase",
     "xide/manager/BeanManager",
     'xide/encoding/MD5',
@@ -13,7 +12,7 @@ define([
     "xide/data/Memory",
     "dstore/Trackable",
     'xide/mixins/EventedMixin'
-],function (dcl,declare, lang, ServerActionBase, BeanManager, MD5, types, utils, cookie, json,Deferred,Memory,Trackable,
+],function (dcl,declare, ServerActionBase, BeanManager, MD5, types, utils, cookie, json,Deferred,Memory,Trackable,
           EventedMixin) {
 
     var debug = false;
@@ -128,9 +127,7 @@ define([
             },
             empty:function(which){
                 this.clear(which);
-
                 var store = this.getStore(which);
-
                 if(store.then){
                     store.then(function(_store){
                         _store.setData([]);
@@ -138,15 +135,13 @@ define([
                 }
             },
             clear: function (which) {
-                return this.runDeferred(null, 'clear', [which || '']).then(function (data) {});
+                return this.runDeferred(null, 'clearAbs', [which || '']).then(function (data) {});
             },
             getViewTarget: function () {
                 var mainView = this.ctx.getApplication().mainView;
                 return mainView.getNewAlternateTarget();
             },
-
             getStore: function (which) {
-
                 if(!which) {
                     return this.store;
                 }
@@ -156,7 +151,7 @@ define([
                     return dfd;
                 }
                 var thiz = this;
-                this.runDeferred(null, 'ls', [which || '']).then(function(data){
+                this.runDeferred(null, 'lsAbs', [which || '']).then(function(data){
                     if (_.isString(data)) {
                         data = utils.getJson(data);
                     }
@@ -165,9 +160,7 @@ define([
                     dfd.resolve(store);
 
                 });
-
                 return dfd;
-
             },
             /***
              * Common function that this instance is in a valid state
@@ -235,18 +228,14 @@ define([
                 try {
 
                     var storeClass = declare('LogStore',[Memory],{});
-                    console.log('-init store');
                     store = new storeClass({
                         idProperty: 'time',
                         data: sdata,
                         id:utils.createUUID()
                     });
-
-
                 } catch (e) {
                     console.error('log creation failed: ', e);
                 }
-
                 return store;
             },
             /////////////////////////////////////////////////////////////////////////////////////
@@ -545,9 +534,6 @@ define([
                     });
                 }
             },
-            onMainViewReady: function () {
-
-            },
             /////////////////////////////////////////////////////////////////////////////////////
             //
             //  Main entries, called by the context
@@ -556,8 +542,6 @@ define([
             init: function () {
 
                 this.subscribe([
-                    types.EVENTS.ON_MAIN_MENU_OPEN,
-                    types.EVENTS.ON_MAIN_VIEW_READY,
                     types.EVENTS.ON_SERVER_LOG_MESSAGE
                 ]);
                 this.views = [];
@@ -584,9 +568,6 @@ define([
                     thiz.onStoreReloaded(data);
                 });
             },
-            onMainMenuOpen: function (evt) {
-
-            },
             /////////////////////////////////////////////////////////////////////////////////////
             //
             //  Server methods
@@ -594,9 +575,9 @@ define([
             /////////////////////////////////////////////////////////////////////////////////////
             /***
              * ls is enumerating all drivers in a given scope
-             * @param scope{string}
              * @param readyCB{function}
-             * @param errorCB{function}
+             * @param which {string}
+             * @param errorCB {function}
              * @returns {*}
              */
             ls: function (readyCB,which,cb) {
@@ -610,7 +591,7 @@ define([
 
                     //keep a copy
                     thiz.rawData = data;
-                    if (lang.isString(data)) {
+                    if (_.isString(data)) {
                         data = utils.getJson(data);
                     }
                     thiz.store = thiz.initStore(data);
@@ -619,7 +600,7 @@ define([
                     }
 
                 };
-                return this.callMethodEx(null, 'ls', [which || ''], _cb, true);
+                return this.callMethodEx(null, 'lsAbs', [which || ''], _cb, true);
             }
         });
 });
