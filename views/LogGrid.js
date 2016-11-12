@@ -176,7 +176,7 @@ define([
                     label: "Message",
                     sortable: true,
                     formatter: function (message, item) {
-                        return thiz.getMessageFormatter(message, item)
+                        return thiz.getMessageFormatter(message, item);
                     }
                 },
                 Time: {
@@ -189,8 +189,6 @@ define([
                     },
                     formatter: function (time, object) {
                         if (!object.timeStr) {
-
-                            //object.timeStr =thiz.formatDateSimple(object.time / 1000);
                             if (time === '') {
                                 return time;
                             }
@@ -212,7 +210,7 @@ define([
         set: function (what, value) {
             var thiz = this;
             if (what == 'collection') {
-                thiz.addHandle('added', value._on('added', function (evt) {
+                thiz.addHandle('added', value._on('added', function () {
                     thiz.refresh();
                 }));
             }
@@ -229,7 +227,6 @@ define([
             }
         },
         onShow: function () {
-
             if (this._dirty) {
                 this.refresh();
                 this._dirty = false;

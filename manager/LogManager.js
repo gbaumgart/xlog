@@ -268,7 +268,6 @@ define([
             }
         },
         addLoggingMessage: function (msg) {
-            debug && console.log('addLoggingMessage : ' + msg.time);
             if (msg && msg.data) {
                 var storeId = msg.data.logId;
                 if (!storeId && msg.data && msg.data.device) {
