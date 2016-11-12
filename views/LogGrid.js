@@ -15,10 +15,7 @@ define([
     'xaction/DefaultActions',
     "xide/widgets/_Widget",
     'xlang/i18'
-], function (declare,types,
-             ListRenderer, Grid, Defaults, Focus,KeyboardNavigation,Search,Layout,
-             OnDemandGrid, EventedMixin,utils,DefaultActions,_Widget,i18) {
-
+], function (declare, types, ListRenderer, Grid, Defaults, Focus, KeyboardNavigation, Search, Layout, OnDemandGrid, EventedMixin, utils, DefaultActions, _Widget, i18) {
 
     /**
      * @class module:xgrid/views/LogGrid
@@ -36,25 +33,22 @@ define([
             ACTIONS: types.GRID_FEATURES.ACTIONS,
             CONTEXT_MENU: types.GRID_FEATURES.CONTEXT_MENU,
             TOOLBAR: types.GRID_FEATURES.TOOLBAR,
-            FILTER:{
-                CLASS:KeyboardNavigation
+            FILTER: {
+                CLASS: KeyboardNavigation
             },
-            SEARCH:{
-                CLASS:Search
+            SEARCH: {
+                CLASS: Search
             },
-            WIDGET:{
-                CLASS:_Widget
+            WIDGET: {
+                CLASS: _Widget
             }
-
         },
         {
             //base flip
             RENDERER: ListRenderer
-
         },
         {
             //args
-
         },
         {
             GRID: OnDemandGrid,
@@ -68,17 +62,17 @@ define([
     );
 
     var ACTION = types.ACTION;
-
-
     return declare("xlog.views.LogView", GridClass, {
         rowsPerPage: 30,
         minRowsPerPage: 100,
         /**
          * Stubs
          */
-        delegate:{
-            getStore:function(){},
-            removeStore:function(){}
+        delegate: {
+            getStore: function () {
+            },
+            removeStore: function () {
+            }
         },
         _columns: {
             "Level": true,
@@ -93,51 +87,48 @@ define([
             ACTION.LAYOUT,
             ACTION.COLUMNS,
             ACTION.SELECTION,
-            //ACTION.PREVIEW,
             ACTION.SAVE,
             ACTION.SEARCH,
             ACTION.TOOLBAR
         ],
-        runAction:function(action){
-
+        runAction: function (action) {
             var thiz = this;
-            if(action.command==='File/Reload'){
+            if (action.command === 'File/Reload') {
                 this.delegate.removeStore(this.storeId);
-                this.delegate.getStore(this.storeId).then(function(_store){
+                this.delegate.getStore(this.storeId).then(function (_store) {
                     thiz.collection = _store;
-                    thiz.set('collection',thiz.collection.filter(thiz.getRootFilter()).sort(thiz.getDefaultSort()));
+                    thiz.set('collection', thiz.collection.filter(thiz.getRootFilter()).sort(thiz.getDefaultSort()));
                 });
 
             }
-            if(action.command==='File/Delete'){
+            if (action.command === 'File/Delete') {
                 this.delegate.empty(this.storeId);
-                this.set('collection',this.collection.filter(this.getRootFilter()).sort(this.getDefaultSort()));
+                this.set('collection', this.collection.filter(this.getRootFilter()).sort(this.getDefaultSort()));
             }
             return this.inherited(arguments);
         },
-        getRootFilter:function(){
+        getRootFilter: function () {
             return {
-                show:true
-            }
+                show: true
+            };
         },
         postMixInProperties: function () {
             this.columns = this.getColumns();
             return this.inherited(arguments);
         },
-        getDefaultSort:function(){
+        getDefaultSort: function () {
             return [{property: 'time', descending: true}];
         },
         getMessageFormatter: function (message, item) {
             var thiz = this;
-            if(item.progressHandler && !item._subscribedToProgress){
-                item.progressHandler._on('progress',function(_message){
+            if (item.progressHandler && !item._subscribedToProgress) {
+                item.progressHandler._on('progress', function () {
                     thiz.refresh();
                 });
                 item._subscribedToProgress = true;
             }
-
-            var _isTerminated = item.terminatorMessage !==null && item._isTerminated===true;
-            if(!item.terminatorMessage){
+            var _isTerminated = item.terminatorMessage !== null && item._isTerminated === true;
+            if (!item.terminatorMessage) {
                 _isTerminated = true;
             }
 
@@ -156,16 +147,13 @@ define([
                     formatter: function (level) {
 
                         switch (level) {
-                            case 'info':
-                            {
+                            case 'info': {
                                 return '<span class="text-info" style=\"">' + level + '</span>';
                             }
-                            case 'error':
-                            {
+                            case 'error': {
                                 return '<span class="text-danger" style=\"">' + level + '</span>';
                             }
-                            case 'warn':
-                            {
+                            case 'warn': {
                                 return '<span class="text-warning" style=\"">' + level + '</span>';
                             }
                         }
@@ -195,74 +183,64 @@ define([
                     field: "timeStr", // get whole item for use by formatter
                     label: "Time",
                     sortable: true,
-                    get:function(object){
+                    get: function (object) {
                         //console.log('get',arguments);
                         return object.time;
                     },
-                    formatter: function (time,object) {
-                        if(!object.timeStr){
+                    formatter: function (time, object) {
+                        if (!object.timeStr) {
 
                             //object.timeStr =thiz.formatDateSimple(object.time / 1000);
-                            if(time ===''){
+                            if (time === '') {
                                 return time;
                             }
                             var dateFormat = i18.translations.dateFormat;
-                            if(dateFormat){
+                            if (dateFormat) {
                                 var res = i18.formatDate(time);
-                                object.timeStr = res.replace('ms','');
+                                object.timeStr = res.replace('ms', '');
                             }
                         }
                         return object.timeStr;
                     }
-                }/*,
-                 Details:{
-                 field: "details", // get whole item for use by formatter
-                 label: "Details",
-                 sortable: false,
-                 editor:RowDetailEditor
-                 }*/
+                }
             };
-
-
             if (!this.showSource) {
                 delete columns['Host'];
             }
             return columns;
         },
-        set:function(what,value){
+        set: function (what, value) {
             var thiz = this;
-            if(what=='collection'){
-                thiz.addHandle('added',value._on('added',function(evt){
+            if (what == 'collection') {
+                thiz.addHandle('added', value._on('added', function (evt) {
                     thiz.refresh();
                 }));
             }
             return this.inherited(arguments);
         },
-        _onMessage:function (evt) {
-            if(!this._showing){
+        _onMessage: function (evt) {
+            if (!this._showing) {
                 this._dirty = true;
-            }else{
-                if(this.isMyLog && this.isMyLog(evt)===false){
+            } else {
+                if (this.isMyLog && this.isMyLog(evt) === false) {
                     return;
                 }
                 this.refresh();
             }
         },
-        onShow:function(){
+        onShow: function () {
 
-            if(this._dirty){
+            if (this._dirty) {
                 this.refresh();
                 this._dirty = false;
             }
             return this.inherited(arguments);
         },
-        startup:function(){
-            var permissions = this.permissions,
-                _defaultActions = DefaultActions.getDefaultActions(permissions, this);
-
-            this.addActions(_defaultActions);
+        startup: function () {
+            var permissions = this.permissions;
+            this.addActions(DefaultActions.getDefaultActions(permissions, this));
             this.inherited(arguments);
-            this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE,this._onMessage);
+            this.subscribe(types.EVENTS.ON_SERVER_LOG_MESSAGE, this._onMessage);
             this.resize();
         }
     });
