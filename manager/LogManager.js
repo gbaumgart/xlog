@@ -64,7 +64,6 @@ define([
                     this._onFinish();
                     this.destroy();
                 }
-
             } catch (e) {
                 console.error('crash in log progress ' + e);
             }
@@ -96,7 +95,6 @@ define([
         loadPreferences: function () {
             var _cookie = this.cookiePrefix + '_debug_settings';
             var settings = cookie(_cookie);
-
             settings = settings ? json.parse(settings) : {};
             return settings;
         },
@@ -138,7 +136,6 @@ define([
                 var store = thiz.initStore(data);
                 thiz.stores[which] = store;
                 dfd.resolve(store);
-
             });
             return dfd;
         },
@@ -171,7 +168,7 @@ define([
                 item.host = msg.device.host + ':' + msg.device.port;
             }
             if (msg.deviceMessage) {
-                item.message = item.message + ':' + msg.deviceMessage
+                item.message = item.message + ':' + msg.deviceMessage;
             }
             item.ori = msg;
             return item;
@@ -219,7 +216,7 @@ define([
                 view.update(store, message);
             }
         },
-        refreshViews: function (store, message) {
+        refreshViews: function () {
             for (var i = 0; i < this.views.length; i++) {
                 var view = this.views[i];
                 view.grid.refresh();
@@ -256,7 +253,6 @@ define([
                     }
                 }
             }
-
             _handle = thiz.subscribe(terminatorMessage, _onEnd, thiz)[0];
             if (item.showProgress && item.progressMessage) {
                 if (!item.progressHandler) {
@@ -302,7 +298,7 @@ define([
                     item.host = msg.data.device.host + ':' + msg.data.device.port;
                 }
                 if (msg.data.deviceMessage) {
-                    item.message = item.message + ':' + msg.data.deviceMessage
+                    item.message = item.message + ':' + msg.data.deviceMessage;
                 }
             }
 
@@ -314,7 +310,6 @@ define([
                     }
                     this._createPendingEvent(item.oriMessage, item, item.terminatorMessage, item.time);
                 }
-
                 var store = this.getStore(storeId);
                 if (!store) {
                     return;
